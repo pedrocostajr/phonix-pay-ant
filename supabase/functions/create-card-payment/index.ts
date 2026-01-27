@@ -39,11 +39,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: CardPaymentRequest = await req.json();
-    const { 
-      productId, 
-      payerEmail, 
-      payerName, 
-      installments, 
+    const {
+      productId,
+      payerEmail,
+      payerName,
+      installments,
       paymentMethodId,
       issuerId,
       identificationNumber,
@@ -54,14 +54,14 @@ serve(async (req) => {
     if (!productId || !payerEmail) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: productId, payerEmail" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!cardData) {
       return new Response(
         JSON.stringify({ error: "Card data is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -77,14 +77,14 @@ serve(async (req) => {
       console.error("Product fetch error:", productError);
       return new Response(
         JSON.stringify({ error: "Product not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!product.mercado_pago_account_id) {
       return new Response(
         JSON.stringify({ error: "No Mercado Pago account configured for this product" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -99,7 +99,7 @@ serve(async (req) => {
       console.error("MP account fetch error:", mpError);
       return new Response(
         JSON.stringify({ error: "Mercado Pago account not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -174,7 +174,7 @@ serve(async (req) => {
 
     if (!mpResponse.ok) {
       console.error("Mercado Pago error:", mpData);
-      
+
       // Handle specific errors
       let errorMessage = "Erro ao processar pagamento";
       if (mpData.cause && mpData.cause.length > 0) {
@@ -184,12 +184,12 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ 
-          error: "Failed to create payment", 
+        JSON.stringify({
+          error: "Failed to create payment",
           details: errorMessage,
           statusDetail: mpData.status_detail || "unknown",
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -238,8 +238,8 @@ serve(async (req) => {
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Internal server error: " + error.message }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
