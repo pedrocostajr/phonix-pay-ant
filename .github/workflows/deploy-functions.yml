@@ -23,4 +23,4 @@ jobs:
           version: latest
 
       - name: Deploy Functions
-        run: supabase functions deploy --no-verify-jwt
+        run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID --no-verify-jwt
