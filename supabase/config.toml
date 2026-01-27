@@ -1,0 +1,16 @@
+project_id = "gloocdxfsnsvxudeysnt"
+
+[functions.create-pix-payment]
+verify_jwt = false
+
+[functions.mp-webhook]
+verify_jwt = false
+
+[functions.create-admin]
+verify_jwt = false
+
+[functions.create-card-payment]
+verify_jwt = false
+
+[functions.create-team-member]
+verify_jwt = false

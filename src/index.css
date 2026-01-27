@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Phoenix Pay Design System
+   Checkout: Clean Apple-style whites
+   Admin: Professional dark mode
+*/
+
+@layer base {
+  :root {
+    /* Checkout Theme - Clean & Minimal */
+    --background: 0 0% 98%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    /* Success Green - Main accent */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 142 76% 36%;
+
+    --radius: 0.75rem;
+
+    /* Phoenix specific tokens */
+    --phoenix-gradient-start: 142 76% 36%;
+    --phoenix-gradient-end: 142 76% 28%;
+    --phoenix-shadow: 220 20% 10%;
+    --phoenix-glow: 142 76% 50%;
+    
+    /* Card shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(var(--phoenix-shadow) / 0.06),
+                   0 4px 16px -4px hsl(var(--phoenix-shadow) / 0.08);
+    --shadow-elevated: 0 4px 12px -2px hsl(var(--phoenix-shadow) / 0.08),
+                       0 8px 24px -4px hsl(var(--phoenix-shadow) / 0.12);
+    --shadow-floating: 0 8px 24px -4px hsl(var(--phoenix-shadow) / 0.12),
+                       0 16px 48px -8px hsl(var(--phoenix-shadow) / 0.16);
+  }
+
+  /* Admin Dark Theme */
+  .dark, [data-theme="admin"] {
+    --background: 225 25% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 225 25% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 225 25% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 142 76% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 225 20% 16%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 225 20% 16%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 142 76% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 225 20% 18%;
+    --input: 225 20% 18%;
+    --ring: 142 76% 42%;
+
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-elevated: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
+    --shadow-floating: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Phoenix Button Styles */
+  .phoenix-btn {
+    @apply relative overflow-hidden font-semibold transition-all duration-300;
+    @apply rounded-xl px-6 py-4;
+    @apply shadow-[var(--shadow-soft)];
+  }
+
+  .phoenix-btn:hover {
+    @apply shadow-[var(--shadow-elevated)] scale-[1.02];
+  }
+
+  .phoenix-btn:active {
+    @apply scale-[0.98];
+  }
+
+  .phoenix-btn-primary {
+    @apply text-white;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--phoenix-gradient-start)) 0%,
+      hsl(var(--phoenix-gradient-end)) 100%
+    );
+  }
+
+  .phoenix-btn-primary::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--phoenix-glow) / 0.3) 0%,
+      transparent 50%
+    );
+  }
+
+  .phoenix-btn-primary:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Card Styles */
+  .phoenix-card {
+    @apply bg-card rounded-2xl p-6;
+    box-shadow: var(--shadow-soft);
+    @apply transition-all duration-300;
+  }
+
+  .phoenix-card:hover {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .phoenix-card-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Input Styles */
+  .phoenix-input {
+    @apply w-full px-4 py-3 rounded-xl bg-secondary border-2 border-transparent;
+    @apply text-foreground placeholder:text-muted-foreground;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10;
+  }
+
+  /* Badge Styles */
+  .phoenix-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-primary/10 text-primary;
+  }
+
+  .phoenix-badge-success {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Sticky Bottom CTA for Mobile */
+  .phoenix-sticky-cta {
+    @apply fixed bottom-0 left-0 right-0 p-4 bg-card/95 backdrop-blur-xl;
+    @apply border-t border-border;
+    @apply shadow-[0_-4px_24px_-4px_hsl(var(--phoenix-shadow)/0.1)];
+  }
+
+  /* Price Display */
+  .phoenix-price {
+    @apply text-4xl font-black tracking-tight;
+  }
+
+  .phoenix-price-crossed {
+    @apply text-lg text-muted-foreground line-through;
+  }
+
+  /* Admin specific */
+  .admin-input {
+    @apply w-full px-4 py-3 rounded-xl bg-secondary border border-border;
+    @apply text-foreground placeholder:text-muted-foreground;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .admin-card {
+    @apply bg-card rounded-2xl p-6 border border-border;
+    @apply transition-all duration-300 hover:border-primary/30;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.5s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+}
