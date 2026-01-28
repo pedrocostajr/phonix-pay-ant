@@ -22,6 +22,7 @@ interface Product {
   mercado_pago_account_id: string | null;
   is_active: boolean;
   created_at: string;
+  banner_url: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -53,6 +54,7 @@ export function ProductsManager() {
     button_gradient_start: "142 76% 36%",
     button_gradient_end: "142 76% 28%",
     mercado_pago_account_id: "",
+    banner_url: "",
     is_active: true,
   });
 
@@ -121,6 +123,7 @@ export function ProductsManager() {
       button_gradient_start: product.button_gradient_start,
       button_gradient_end: product.button_gradient_end,
       mercado_pago_account_id: product.mercado_pago_account_id || "",
+      banner_url: product.banner_url || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -162,6 +165,7 @@ export function ProductsManager() {
       button_gradient_start: formData.button_gradient_start,
       button_gradient_end: formData.button_gradient_end,
       mercado_pago_account_id: formData.mercado_pago_account_id || null,
+      banner_url: formData.banner_url.trim() || null,
       is_active: formData.is_active,
     };
 
@@ -307,6 +311,34 @@ export function ProductsManager() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              URL do Banner (opcional)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={formData.banner_url}
+                onChange={(e) => setFormData({ ...formData, banner_url: e.target.value })}
+                placeholder="https://... (Link direto da imagem: .png, .jpg)"
+                className="admin-input flex-1"
+              />
+              {formData.banner_url && (
+                <div className="w-10 h-10 rounded border border-border overflow-hidden bg-secondary">
+                  <img
+                    src={formData.banner_url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Cole o link direto da imagem gerada no Canva ou hospedada online.
+            </p>
+          </div>
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Preço (R$)</label>
@@ -380,11 +412,10 @@ export function ProductsManager() {
                   key={preset.name}
                   type="button"
                   onClick={() => handleColorSelect(preset)}
-                  className={`p-2 rounded-lg border-2 transition-all ${
-                    formData.accent_color === preset.value
-                      ? "border-primary"
-                      : "border-transparent hover:border-border"
-                  }`}
+                  className={`p-2 rounded-lg border-2 transition-all ${formData.accent_color === preset.value
+                    ? "border-primary"
+                    : "border-transparent hover:border-border"
+                    }`}
                 >
                   <div
                     className="w-full h-6 rounded"
@@ -455,9 +486,8 @@ export function ProductsManager() {
             {products.map((product) => (
               <div
                 key={product.id}
-                className={`flex items-center justify-between p-4 rounded-xl bg-secondary/50 ${
-                  !product.is_active ? "opacity-60" : ""
-                }`}
+                className={`flex items-center justify-between p-4 rounded-xl bg-secondary/50 ${!product.is_active ? "opacity-60" : ""
+                  }`}
               >
                 <div className="flex items-center gap-3 flex-1">
                   <div
@@ -499,11 +529,10 @@ export function ProductsManager() {
                   </button>
                   <button
                     onClick={() => toggleActive(product)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      product.is_active
-                        ? "text-primary hover:bg-primary/10"
-                        : "text-muted-foreground hover:bg-secondary"
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${product.is_active
+                      ? "text-primary hover:bg-primary/10"
+                      : "text-muted-foreground hover:bg-secondary"
+                      }`}
                     title={product.is_active ? "Desativar" : "Ativar"}
                   >
                     <Eye className="w-4 h-4" />

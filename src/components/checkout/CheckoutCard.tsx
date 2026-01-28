@@ -17,6 +17,17 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
 
   return (
     <div className="w-full max-w-md mx-auto">
+      {/* Banner */}
+      {config.bannerUrl && (
+        <div className="mb-6 rounded-xl overflow-hidden shadow-lg animate-fade-up">
+          <img
+            src={config.bannerUrl}
+            alt={config.name}
+            className="w-full h-auto object-cover max-h-48"
+          />
+        </div>
+      )}
+
       {/* Product Header */}
       <div className="text-center mb-8 animate-fade-up">
         <div className="phoenix-badge mb-4">
@@ -30,7 +41,7 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
       </div>
 
       {/* Price Display */}
-      <div 
+      <div
         className="phoenix-card phoenix-card-elevated mb-6 animate-fade-up"
         style={{ animationDelay: "0.1s" }}
       >
@@ -40,7 +51,7 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
               {paymentMethod === "pix" ? `PIX com ${config.pixDiscount}% OFF` : "Cartão de Crédito"}
             </p>
             <div className="flex items-baseline gap-3">
-              <span 
+              <span
                 className="phoenix-price"
                 style={{ color: `hsl(${config.accentColor})` }}
               >
@@ -54,7 +65,7 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
             </div>
           </div>
           {paymentMethod === "pix" && (
-            <div 
+            <div
               className="px-3 py-1 rounded-full text-xs font-bold text-white"
               style={{ backgroundColor: `hsl(${config.accentColor})` }}
             >
@@ -65,22 +76,21 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
       </div>
 
       {/* Payment Method Selector */}
-      <div 
+      <div
         className="grid grid-cols-2 gap-3 mb-6 animate-fade-up"
         style={{ animationDelay: "0.2s" }}
       >
         <button
           onClick={() => setPaymentMethod("pix")}
-          className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${
-            paymentMethod === "pix" 
-              ? "ring-2 ring-offset-2 ring-primary" 
+          className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${paymentMethod === "pix"
+              ? "ring-2 ring-offset-2 ring-primary"
               : "hover:bg-secondary/50"
-          }`}
-          style={paymentMethod === "pix" ? { 
-            "--tw-ring-color": `hsl(${config.accentColor})` 
+            }`}
+          style={paymentMethod === "pix" ? {
+            "--tw-ring-color": `hsl(${config.accentColor})`
           } as React.CSSProperties : undefined}
         >
-          <QrCode 
+          <QrCode
             className="w-6 h-6"
             style={{ color: paymentMethod === "pix" ? `hsl(${config.accentColor})` : undefined }}
           />
@@ -90,16 +100,15 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
 
         <button
           onClick={() => setPaymentMethod("card")}
-          className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${
-            paymentMethod === "card" 
-              ? "ring-2 ring-offset-2 ring-primary" 
+          className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${paymentMethod === "card"
+              ? "ring-2 ring-offset-2 ring-primary"
               : "hover:bg-secondary/50"
-          }`}
-          style={paymentMethod === "card" ? { 
-            "--tw-ring-color": `hsl(${config.accentColor})` 
+            }`}
+          style={paymentMethod === "card" ? {
+            "--tw-ring-color": `hsl(${config.accentColor})`
           } as React.CSSProperties : undefined}
         >
-          <CreditCard 
+          <CreditCard
             className="w-6 h-6"
             style={{ color: paymentMethod === "card" ? `hsl(${config.accentColor})` : undefined }}
           />
@@ -109,7 +118,7 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
       </div>
 
       {/* Payment Form */}
-      <div 
+      <div
         className="animate-fade-up"
         style={{ animationDelay: "0.3s" }}
       >
@@ -121,7 +130,7 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
       </div>
 
       {/* Trust Badges */}
-      <div 
+      <div
         className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground animate-fade-up"
         style={{ animationDelay: "0.4s" }}
       >

@@ -16,6 +16,7 @@ interface DbProduct {
   button_gradient_start: string;
   button_gradient_end: string;
   mercado_pago_account_id: string | null;
+  banner_url: string | null;
   is_active: boolean;
 }
 
@@ -60,6 +61,7 @@ export default function Checkout() {
         accentColor: dbProduct.accent_color,
         buttonGradientStart: dbProduct.button_gradient_start,
         buttonGradientEnd: dbProduct.button_gradient_end,
+        bannerUrl: dbProduct.banner_url || undefined,
       });
 
       setMpAccountId(dbProduct.mercado_pago_account_id);
@@ -91,10 +93,10 @@ export default function Checkout() {
       <header className="py-6 border-b border-border">
         <div className="container max-w-md mx-auto px-4">
           <div className="flex items-center justify-center gap-2">
-            <div 
+            <div
               className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-white text-sm"
-              style={{ 
-                background: `linear-gradient(135deg, hsl(${product.accentColor}) 0%, hsl(${product.buttonGradientEnd}) 100%)` 
+              style={{
+                background: `linear-gradient(135deg, hsl(${product.accentColor}) 0%, hsl(${product.buttonGradientEnd}) 100%)`
               }}
             >
               P
