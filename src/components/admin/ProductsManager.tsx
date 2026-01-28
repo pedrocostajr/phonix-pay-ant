@@ -23,6 +23,7 @@ interface Product {
   is_active: boolean;
   created_at: string;
   banner_url: string | null;
+  bottom_banner_url: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -55,6 +56,7 @@ export function ProductsManager() {
     button_gradient_end: "142 76% 28%",
     mercado_pago_account_id: "",
     banner_url: "",
+    bottom_banner_url: "",
     is_active: true,
   });
 
@@ -124,6 +126,7 @@ export function ProductsManager() {
       button_gradient_end: product.button_gradient_end,
       mercado_pago_account_id: product.mercado_pago_account_id || "",
       banner_url: product.banner_url || "",
+      bottom_banner_url: product.bottom_banner_url || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -166,6 +169,7 @@ export function ProductsManager() {
       button_gradient_end: formData.button_gradient_end,
       mercado_pago_account_id: formData.mercado_pago_account_id || null,
       banner_url: formData.banner_url.trim() || null,
+      bottom_banner_url: formData.bottom_banner_url.trim() || null,
       is_active: formData.is_active,
     };
 
@@ -336,6 +340,34 @@ export function ProductsManager() {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Cole o link direto da imagem gerada no Canva ou hospedada online.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              URL do Banner Inferior (opcional)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={formData.bottom_banner_url}
+                onChange={(e) => setFormData({ ...formData, bottom_banner_url: e.target.value })}
+                placeholder="https://... (Link direto da imagem)"
+                className="admin-input flex-1"
+              />
+              {formData.bottom_banner_url && (
+                <div className="w-10 h-10 rounded border border-border overflow-hidden bg-secondary">
+                  <img
+                    src={formData.bottom_banner_url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Banner exibido ao final do checkout.
             </p>
           </div>
 

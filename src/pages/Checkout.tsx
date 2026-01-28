@@ -17,6 +17,7 @@ interface DbProduct {
   button_gradient_end: string;
   mercado_pago_account_id: string | null;
   banner_url: string | null;
+  bottom_banner_url: string | null;
   is_active: boolean;
 }
 
@@ -62,6 +63,7 @@ export default function Checkout() {
         buttonGradientStart: dbProduct.button_gradient_start,
         buttonGradientEnd: dbProduct.button_gradient_end,
         bannerUrl: dbProduct.banner_url || undefined,
+        bottomBannerUrl: dbProduct.bottom_banner_url || undefined,
       });
 
       setMpAccountId(dbProduct.mercado_pago_account_id);

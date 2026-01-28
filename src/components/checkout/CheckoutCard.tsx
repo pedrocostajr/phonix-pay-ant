@@ -83,8 +83,8 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
         <button
           onClick={() => setPaymentMethod("pix")}
           className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${paymentMethod === "pix"
-              ? "ring-2 ring-offset-2 ring-primary"
-              : "hover:bg-secondary/50"
+            ? "ring-2 ring-offset-2 ring-primary"
+            : "hover:bg-secondary/50"
             }`}
           style={paymentMethod === "pix" ? {
             "--tw-ring-color": `hsl(${config.accentColor})`
@@ -101,8 +101,8 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
         <button
           onClick={() => setPaymentMethod("card")}
           className={`phoenix-card flex flex-col items-center gap-2 py-4 cursor-pointer transition-all ${paymentMethod === "card"
-              ? "ring-2 ring-offset-2 ring-primary"
-              : "hover:bg-secondary/50"
+            ? "ring-2 ring-offset-2 ring-primary"
+            : "hover:bg-secondary/50"
             }`}
           style={paymentMethod === "card" ? {
             "--tw-ring-color": `hsl(${config.accentColor})`
@@ -143,6 +143,17 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
           <span>Garantia 7 dias</span>
         </div>
       </div>
+
+      {/* Bottom Banner */}
+      {config.bottomBannerUrl && (
+        <div className="mt-6 mb-2 rounded-lg overflow-hidden animate-fade-up" style={{ animationDelay: "0.5s" }}>
+          <img
+            src={config.bottomBannerUrl}
+            alt="Informações adicionais"
+            className="w-full h-auto object-cover"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ export interface ProductConfig {
   buttonGradientEnd: string;
   pixDiscount: number; // percentual de desconto no PIX
   bannerUrl?: string; // URL do banner opcional
+  bottomBannerUrl?: string; // URL do banner opcional
 }
 
 export const PRODUCT_CONFIG: ProductConfig = {
