@@ -119,7 +119,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError("Por favor, informe seu e-mail");
       return;
@@ -326,11 +326,13 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
             onChange={(e) => setInstallments(Number(e.target.value))}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-              <option key={n} value={n}>
-                {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
-              </option>
-            ))}
+            {Array.from({ length: 12 }, (_, i) => i + 1)
+              .filter(n => config.price >= n * 500 || n === 1)
+              .map((n) => (
+                <option key={n} value={n}>
+                  {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -343,13 +345,13 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
         )}
 
         {/* Total */}
-        <div 
+        <div
           className="rounded-xl p-4"
           style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
         >
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total</span>
-            <span 
+            <span
               className="text-xl font-black"
               style={{ color: `hsl(${config.accentColor})` }}
             >
