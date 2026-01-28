@@ -22,5 +22,12 @@ jobs:
         with:
           version: latest
 
+      - name: Link Project
+        run: supabase link --project-ref $SUPABASE_PROJECT_ID --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+        continue-on-error: true
+
+      - name: Push Database Migrations
+        run: supabase db push --include-all --no-verify-jwt
+        
       - name: Deploy Functions
         run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID --no-verify-jwt
