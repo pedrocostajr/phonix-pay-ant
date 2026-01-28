@@ -22,6 +22,11 @@ jobs:
         with:
           version: latest
 
+      - name: Debug Project ID
+        run: |
+          echo "Deploying to Project: ${{ secrets.SUPABASE_PROJECT_ID }}"
+          echo "Length of Token: ${#SUPABASE_ACCESS_TOKEN}"
+
       - name: Link Project
         run: supabase link --project-ref $SUPABASE_PROJECT_ID --password ${{ secrets.SUPABASE_DB_PASSWORD }}
         continue-on-error: true
