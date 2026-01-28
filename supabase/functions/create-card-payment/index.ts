@@ -131,16 +131,22 @@ serve(async (req) => {
     const cardBin = cardData.cardNumber.substring(0, 6);
     const detectedPaymentMethod = detectCardBrand(cardBin);
 
-    // Create payment directly with card data (for Brazil)
-    const paymentBody: Record<string, unknown> = {
-      transaction_amount: priceInReais,
-      description: product.name,
-      payment_method_id: detectedPaymentMethod || paymentMethodId || "master",
-      installments: installments || 1,
-      payer,
-      notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
-      card: {
+    // Fix expiration year (ensure 4 digits)
+    let finalExpirationYear = parseInt(cardData.expirationYear);
+    if (finalExpirationYear < 100) finalExpirationYear += 2000;
+
+    // 1. Generate Card Token (Backend Tokenization)
+    const tokenResponse = await fetch("https://api.mercadopago.com/v1/card_tokens", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${mpAccount.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         card_number: cardData.cardNumber,
+        expiration_month: parseInt(cardData.expirationMonth),
+        expiration_year: finalExpirationYear,
+        security_code: cardData.securityCode,
         cardholder: {
           name: cardData.cardholderName,
           identification: {
@@ -148,10 +154,32 @@ serve(async (req) => {
             number: identificationNumber,
           },
         },
-        expiration_month: parseInt(cardData.expirationMonth),
-        expiration_year: parseInt(cardData.expirationYear),
-        security_code: cardData.securityCode,
-      },
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+      console.error("Token generation error:", tokenData);
+      return new Response(
+        JSON.stringify({
+          error: "Failed to tokenize card",
+          details: tokenData.message || "Invalid card data",
+          statusDetail: tokenData.cause?.[0]?.description || "unknown"
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Create Payment with Token
+    const paymentBody: Record<string, unknown> = {
+      transaction_amount: priceInReais,
+      description: product.name,
+      payment_method_id: detectedPaymentMethod || paymentMethodId || "master",
+      installments: installments || 1,
+      token: tokenData.id,
+      payer,
+      notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
     };
 
     if (issuerId) {
