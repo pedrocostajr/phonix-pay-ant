@@ -43,6 +43,7 @@ export function ProductsManager() {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,37 +62,56 @@ export function ProductsManager() {
   });
 
   const fetchData = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const [productsRes, accountsRes] = await Promise.all([
-      supabase
-        .from("products")
-        .select("*, mercado_pago_accounts(id, name)")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("mercado_pago_accounts")
-        .select("id, name")
-        .order("name"),
-    ]);
+      const [productsRes, accountsRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("*, mercado_pago_accounts(id, name)")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("mercado_pago_accounts")
+          .select("id, name")
+          .order("name"),
+      ]);
 
-    if (productsRes.error) {
-      console.error("Error fetching products:", productsRes.error);
-    } else {
-      setProducts(
-        (productsRes.data || []).map((p) => ({
-          ...p,
-          mercado_pago_account: p.mercado_pago_accounts as MercadoPagoAccount | null,
-        }))
-      );
+      if (productsRes.error) {
+        console.error("Error fetching products:", productsRes.error);
+        toast({
+          title: "Erro ao carregar produtos",
+          description: productsRes.error.message,
+          variant: "destructive",
+        });
+      } else {
+        setProducts(
+          (productsRes.data || []).map((p) => ({
+            ...p,
+            mercado_pago_account: p.mercado_pago_accounts as MercadoPagoAccount | null,
+          }))
+        );
+      }
+
+      if (accountsRes.error) {
+        console.error("Error fetching MP accounts:", accountsRes.error);
+        toast({
+          title: "Erro ao carregar contas MP",
+          description: accountsRes.error.message,
+          variant: "destructive",
+        });
+      } else {
+        setMpAccounts(accountsRes.data || []);
+      }
+    } catch (error: any) {
+      console.error("Critical error in fetchData:", error);
+      toast({
+        title: "Erro crítico",
+        description: error.message || "Falha ao carregar dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    if (accountsRes.error) {
-      console.error("Error fetching MP accounts:", accountsRes.error);
-    } else {
-      setMpAccounts(accountsRes.data || []);
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -112,6 +132,7 @@ export function ProductsManager() {
       is_active: true,
     });
     setEditingProduct(null);
+    setSaveError(null);
   };
 
   const openEditForm = (product: Product) => {
@@ -144,67 +165,108 @@ export function ProductsManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveError(null);
+
+    const safeToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
+      try {
+        toast({ title, description, variant });
+      } catch (e) {
+        console.error("Toast failed:", e);
+      }
+    };
 
     if (!formData.name.trim() || !formData.price) {
-      toast({
-        title: "Erro",
-        description: "Preencha o nome e o preço",
-        variant: "destructive",
-      });
+      safeToast("Erro", "Preencha o nome e o preço", "destructive");
+      setSaveError("Preencha o nome e o preço");
       return;
     }
 
     setSaving(true);
+    console.log("Starting product save (aggressive debug)...", formData);
 
-    const productData = {
-      name: formData.name.trim(),
-      description: formData.description.trim() || null,
-      price: Math.round(parseFloat(formData.price) * 100),
-      original_price: formData.original_price
-        ? Math.round(parseFloat(formData.original_price) * 100)
-        : null,
-      pix_discount: parseInt(formData.pix_discount) || 10,
-      accent_color: formData.accent_color,
-      button_gradient_start: formData.button_gradient_start,
-      button_gradient_end: formData.button_gradient_end,
-      mercado_pago_account_id: formData.mercado_pago_account_id || null,
-      banner_url: formData.banner_url.trim() || null,
-      bottom_banner_url: formData.bottom_banner_url.trim() || null,
-      is_active: formData.is_active,
-    };
+    try {
+      const price = parseFloat(formData.price.replace(",", "."));
+      const originalPrice = formData.original_price ? parseFloat(formData.original_price.replace(",", ".")) : null;
 
-    let error;
+      if (isNaN(price)) {
+        throw new Error("Preço inválido");
+      }
 
-    if (editingProduct) {
-      const result = await supabase
-        .from("products")
-        .update(productData)
-        .eq("id", editingProduct.id);
-      error = result.error;
-    } else {
-      const result = await supabase.from("products").insert(productData);
-      error = result.error;
-    }
+      // Proper handling of foreign key
+      const mercadoPagoAccountId = formData.mercado_pago_account_id && formData.mercado_pago_account_id !== ""
+        ? formData.mercado_pago_account_id
+        : null;
 
-    if (error) {
-      toast({
-        title: "Erro ao salvar",
-        description: error.message,
-        variant: "destructive",
+      const productData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        price: Math.round(price * 100),
+        original_price: originalPrice
+          ? Math.round(originalPrice * 100)
+          : null,
+        pix_discount: parseInt(formData.pix_discount) || 10,
+        accent_color: formData.accent_color,
+        button_gradient_start: formData.button_gradient_start,
+        button_gradient_end: formData.button_gradient_end,
+        mercado_pago_account_id: mercadoPagoAccountId,
+        banner_url: formData.banner_url.trim() || null,
+        bottom_banner_url: formData.bottom_banner_url.trim() || null,
+        is_active: formData.is_active,
+      };
+
+      console.log("Reduced data payload:", productData);
+
+      let error;
+
+      // Timeout promise - Reduced to 5 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Time out: O banco de dados demorou muito para responder (5s).")), 5000);
       });
+
+      const dbPromise = (async () => {
+        if (editingProduct) {
+          console.log("Updating existing product:", editingProduct.id);
+          const result = await supabase
+            .from("products")
+            .update(productData)
+            .eq("id", editingProduct.id);
+          return result.error;
+        } else {
+          console.log("Creating new product");
+          const result = await supabase.from("products").insert(productData);
+          return result.error;
+        }
+      })();
+
+      // Race against timeout
+      console.log("Starting race...");
+      error = await Promise.race([dbPromise, timeoutPromise]);
+      console.log("Race finished. Error:", error);
+
+      if (error) {
+        console.error("Database error details:", error);
+        // @ts-ignore
+        throw error;
+      }
+
+      console.log("Product save successful!");
+
+      safeToast(
+        editingProduct ? "Produto atualizado!" : "Produto criado!",
+        `${formData.name} foi ${editingProduct ? "atualizado" : "adicionado"} com sucesso`
+      );
+
+      resetForm();
+      setShowForm(false);
+      fetchData();
+    } catch (error: any) {
+      console.error("Error saving product (caught):", error);
+      const errorMessage = error.message || "Erro desconhecido ao salvar produto";
+      setSaveError(errorMessage);
+      safeToast("Erro ao salvar", errorMessage, "destructive");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    toast({
-      title: editingProduct ? "Produto atualizado!" : "Produto criado!",
-      description: `${formData.name} foi ${editingProduct ? "atualizado" : "adicionado"} com sucesso`,
-    });
-
-    resetForm();
-    setShowForm(false);
-    setSaving(false);
-    fetchData();
   };
 
   const handleDelete = async (product: Product) => {
@@ -290,6 +352,12 @@ export function ProductsManager() {
           <h3 className="font-semibold">
             {editingProduct ? "Editar Produto" : "Novo Produto"}
           </h3>
+
+          {saveError && (
+            <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm font-medium border border-destructive/20">
+              Erro: {saveError}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -483,7 +551,7 @@ export function ProductsManager() {
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Salvando...
+                  Salvando (v2)...
                 </>
               ) : (
                 <>
@@ -587,6 +655,6 @@ export function ProductsManager() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
