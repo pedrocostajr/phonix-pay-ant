@@ -198,8 +198,8 @@ export function ProductsManager() {
         : null;
 
       const productData = {
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
+        name: formData.name?.trim() ?? "",
+        description: formData.description?.trim() || null,
         price: Math.round(price * 100),
         original_price: originalPrice
           ? Math.round(originalPrice * 100)
@@ -209,8 +209,8 @@ export function ProductsManager() {
         button_gradient_start: formData.button_gradient_start,
         button_gradient_end: formData.button_gradient_end,
         mercado_pago_account_id: mercadoPagoAccountId,
-        banner_url: formData.banner_url.trim() || null,
-        bottom_banner_url: formData.bottom_banner_url.trim() || null,
+        banner_url: formData.banner_url?.trim() || null,
+        bottom_banner_url: formData.bottom_banner_url?.trim() || null,
         is_active: formData.is_active,
       };
 
