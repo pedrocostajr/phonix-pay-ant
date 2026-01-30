@@ -58,35 +58,35 @@
                        0 16px 48px -8px hsl(var(--phoenix-shadow) / 0.16);
   }
 
-  /* Admin Dark Theme */
+  /* Admin Dark Theme - Enhanced Readability */
   .dark, [data-theme="admin"] {
-    --background: 225 25% 8%;
-    --foreground: 210 40% 98%;
+    --background: 225 25% 12%;      /* Slightly lighter background for better contrast */
+    --foreground: 210 40% 100%;     /* Pure white text */
 
-    --card: 225 25% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 225 25% 16%;            /* Lighter card background */
+    --card-foreground: 210 40% 100%;
 
-    --popover: 225 25% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 225 25% 16%;
+    --popover-foreground: 210 40% 100%;
 
-    --primary: 142 76% 42%;
+    --primary: 142 76% 45%;         /* Slightly brighter primary */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 20% 16%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 225 20% 20%;       /* Lighter secondary */
+    --secondary-foreground: 210 40% 100%;
 
-    --muted: 225 20% 16%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 225 20% 20%;
+    --muted-foreground: 220 10% 80%; /* Much brighter gray for readability */
 
-    --accent: 142 76% 42%;
+    --accent: 142 76% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 20% 18%;
-    --input: 225 20% 18%;
-    --ring: 142 76% 42%;
+    --border: 225 20% 25%;          /* More visible borders */
+    --input: 225 20% 25%;
+    --ring: 142 76% 45%;
 
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-elevated: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
