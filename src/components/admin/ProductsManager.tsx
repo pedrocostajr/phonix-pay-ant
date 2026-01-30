@@ -27,6 +27,8 @@ interface Product {
   facebook_pixel_id: string | null;
   success_message: string | null;
   whatsapp_number: string | null;
+  success_url: string | null;
+  success_button_text: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -64,6 +66,8 @@ export function ProductsManager() {
     facebook_pixel_id: "",
     success_message: "",
     whatsapp_number: "",
+    success_url: "",
+    success_button_text: "",
     is_active: true,
   });
 
@@ -135,11 +139,13 @@ export function ProductsManager() {
       button_gradient_start: "142 76% 36%",
       button_gradient_end: "142 76% 28%",
       mercado_pago_account_id: "",
-      facebook_pixel_id: "",
       banner_url: "",
       bottom_banner_url: "",
+      facebook_pixel_id: "",
       success_message: "",
       whatsapp_number: "",
+      success_url: "",
+      success_button_text: "",
       is_active: true,
     });
     setEditingProduct(null);
@@ -162,6 +168,8 @@ export function ProductsManager() {
       facebook_pixel_id: product.facebook_pixel_id || "",
       success_message: product.success_message || "",
       whatsapp_number: product.whatsapp_number || "",
+      success_url: product.success_url || "",
+      success_button_text: product.success_button_text || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -228,6 +236,8 @@ export function ProductsManager() {
         facebook_pixel_id: formData.facebook_pixel_id?.trim() || null,
         success_message: formData.success_message?.trim() || null,
         whatsapp_number: formData.whatsapp_number?.trim() || null,
+        success_url: formData.success_url?.trim() || null,
+        success_button_text: formData.success_button_text?.trim() || null,
         is_active: formData.is_active,
       };
 
@@ -504,6 +514,38 @@ export function ProductsManager() {
             <p className="text-xs text-muted-foreground mt-1">
               Instruções que aparecerão logo após a compra aprovada.
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Texto do Botão Personalizado
+              </label>
+              <input
+                type="text"
+                value={formData.success_button_text}
+                onChange={(e) => setFormData({ ...formData, success_button_text: e.target.value })}
+                placeholder="Ex: Acessar Área de Membros"
+                className="admin-input"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Link do Botão
+              </label>
+              <input
+                type="url"
+                value={formData.success_url}
+                onChange={(e) => setFormData({ ...formData, success_url: e.target.value })}
+                placeholder="https://..."
+                className="admin-input"
+              />
+            </div>
+            <div className="col-span-2">
+              <p className="text-xs text-muted-foreground">
+                Se preenchidos, um botão aparecerá na página de sucesso. Ideal para entregar infoprodutos ou redirecionar.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
