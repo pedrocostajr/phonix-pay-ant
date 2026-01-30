@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 interface MercadoPagoAccount {
   id: string;
   name: string;
+  public_key?: string;
   access_token: string;
   created_at: string;
 }
@@ -15,8 +16,9 @@ export function MercadoPagoAccounts() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  
+
   const [newName, setNewName] = useState("");
+  const [newPublicKey, setNewPublicKey] = useState("");
   const [newToken, setNewToken] = useState("");
   const [showToken, setShowToken] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export function MercadoPagoAccounts() {
 
   const fetchAccounts = async () => {
     setLoading(true);
-    
+
     const { data, error } = await supabase
       .from("mercado_pago_accounts")
       .select("*")
@@ -40,7 +42,7 @@ export function MercadoPagoAccounts() {
     } else {
       setAccounts(data || []);
     }
-    
+
     setLoading(false);
   };
 
@@ -50,7 +52,7 @@ export function MercadoPagoAccounts() {
 
   const handleAddAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newName.trim() || !newToken.trim()) {
       toast({
         title: "Erro",
@@ -66,6 +68,7 @@ export function MercadoPagoAccounts() {
       .from("mercado_pago_accounts")
       .insert({
         name: newName.trim(),
+        public_key: newPublicKey.trim(),
         access_token: newToken.trim(),
       });
 
@@ -85,6 +88,7 @@ export function MercadoPagoAccounts() {
     });
 
     setNewName("");
+    setNewPublicKey("");
     setNewToken("");
     setShowAddForm(false);
     setAdding(false);
@@ -175,16 +179,32 @@ export function MercadoPagoAccounts() {
         <form onSubmit={handleAddAccount} className="admin-card space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Nome da Conta
+              Nome da Campanha
             </label>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Ex: Conta Principal, Loja 2..."
+              placeholder="Ex: Campanha de Verão, Lançamento..."
               className="admin-input"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Public Key
+            </label>
+            <input
+              type="text"
+              value={newPublicKey}
+              onChange={(e) => setNewPublicKey(e.target.value)}
+              placeholder="TEST-..."
+              className="admin-input"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Obtenha em: Mercado Pago → Seu Negócio → Credenciais → Chave pública
+            </p>
           </div>
 
           <div>
@@ -294,10 +314,15 @@ export function MercadoPagoAccounts() {
                       </p>
                     )}
                     <p className="text-sm text-muted-foreground font-mono">
-                      {showToken === account.id 
-                        ? account.access_token 
+                      {showToken === account.id
+                        ? account.access_token
                         : maskToken(account.access_token)}
                     </p>
+                    {account.public_key && (
+                      <p className="text-xs text-muted-foreground font-mono mt-1">
+                        PK: {account.public_key.substring(0, 8)}...
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -327,3 +352,4 @@ export function MercadoPagoAccounts() {
     </div>
   );
 }
+
