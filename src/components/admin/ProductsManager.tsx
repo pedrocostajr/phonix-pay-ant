@@ -25,6 +25,8 @@ interface Product {
   banner_url: string | null;
   bottom_banner_url: string | null;
   facebook_pixel_id: string | null;
+  success_message: string | null;
+  whatsapp_number: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -60,6 +62,8 @@ export function ProductsManager() {
     banner_url: "",
     bottom_banner_url: "",
     facebook_pixel_id: "",
+    success_message: "",
+    whatsapp_number: "",
     is_active: true,
   });
 
@@ -134,6 +138,8 @@ export function ProductsManager() {
       facebook_pixel_id: "",
       banner_url: "",
       bottom_banner_url: "",
+      success_message: "",
+      whatsapp_number: "",
       is_active: true,
     });
     setEditingProduct(null);
@@ -154,6 +160,8 @@ export function ProductsManager() {
       banner_url: product.banner_url || "",
       bottom_banner_url: product.bottom_banner_url || "",
       facebook_pixel_id: product.facebook_pixel_id || "",
+      success_message: product.success_message || "",
+      whatsapp_number: product.whatsapp_number || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -218,6 +226,8 @@ export function ProductsManager() {
         banner_url: formData.banner_url?.trim() || null,
         bottom_banner_url: formData.bottom_banner_url?.trim() || null,
         facebook_pixel_id: formData.facebook_pixel_id?.trim() || null,
+        success_message: formData.success_message?.trim() || null,
+        whatsapp_number: formData.whatsapp_number?.trim() || null,
         is_active: formData.is_active,
       };
 
@@ -460,6 +470,39 @@ export function ProductsManager() {
             />
             <p className="text-xs text-muted-foreground mt-1">
               ID do Pixel para traquear o evento InitiateCheckout neste produto.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                WhatsApp de Suporte (Opcional)
+              </label>
+              <input
+                type="text"
+                value={formData.whatsapp_number}
+                onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value.replace(/\D/g, "") })}
+                placeholder="Ex: 5511999999999"
+                className="admin-input"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Apenas números (DDD + Número). Ex: 5511999999999
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Mensagem na Página de Obrigado (Opcional)
+            </label>
+            <textarea
+              value={formData.success_message}
+              onChange={(e) => setFormData({ ...formData, success_message: e.target.value })}
+              placeholder="Ex: Entre no nosso grupo VIP; Seu acesso chegará por e-mail em 5 minutos..."
+              className="admin-input h-24 resize-none"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Instruções que aparecerão logo após a compra aprovada.
             </p>
           </div>
 
