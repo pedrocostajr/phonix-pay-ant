@@ -297,4 +297,21 @@
   [data-theme="admin"] .text-muted-foreground {
     color: hsl(var(--muted-foreground)) !important;
   }
+
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  [data-theme="admin"] h1,
+  [data-theme="admin"] h2,
+  [data-theme="admin"] h3,
+  [data-theme="admin"] h4,
+  [data-theme="admin"] h5,
+  [data-theme="admin"] h6,
+  .dark strong,
+  [data-theme="admin"] strong {
+    color: hsl(var(--foreground)) !important;
+  }
 }
