@@ -24,6 +24,7 @@ interface Product {
   created_at: string;
   banner_url: string | null;
   bottom_banner_url: string | null;
+  facebook_pixel_id: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -58,6 +59,7 @@ export function ProductsManager() {
     mercado_pago_account_id: "",
     banner_url: "",
     bottom_banner_url: "",
+    facebook_pixel_id: "",
     is_active: true,
   });
 
@@ -129,6 +131,9 @@ export function ProductsManager() {
       button_gradient_start: "142 76% 36%",
       button_gradient_end: "142 76% 28%",
       mercado_pago_account_id: "",
+      facebook_pixel_id: "",
+      banner_url: "",
+      bottom_banner_url: "",
       is_active: true,
     });
     setEditingProduct(null);
@@ -148,6 +153,7 @@ export function ProductsManager() {
       mercado_pago_account_id: product.mercado_pago_account_id || "",
       banner_url: product.banner_url || "",
       bottom_banner_url: product.bottom_banner_url || "",
+      facebook_pixel_id: product.facebook_pixel_id || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -211,6 +217,7 @@ export function ProductsManager() {
         mercado_pago_account_id: mercadoPagoAccountId,
         banner_url: formData.banner_url?.trim() || null,
         bottom_banner_url: formData.bottom_banner_url?.trim() || null,
+        facebook_pixel_id: formData.facebook_pixel_id?.trim() || null,
         is_active: formData.is_active,
       };
 
@@ -436,6 +443,23 @@ export function ProductsManager() {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Banner exibido ao final do checkout.
+            </p>
+          </div>
+
+          {/* Facebook Pixel Input */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Facebook Pixel ID (Opcional)
+            </label>
+            <input
+              type="text"
+              value={formData.facebook_pixel_id}
+              onChange={(e) => setFormData({ ...formData, facebook_pixel_id: e.target.value })}
+              placeholder="Ex: 123456789 (Apenas números)"
+              className="admin-input"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              ID do Pixel para traquear o evento InitiateCheckout neste produto.
             </p>
           </div>
 

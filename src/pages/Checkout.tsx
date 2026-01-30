@@ -18,6 +18,7 @@ interface DbProduct {
   mercado_pago_account_id: string | null;
   banner_url: string | null;
   bottom_banner_url: string | null;
+  facebook_pixel_id: string | null;
   is_active: boolean;
 }
 
@@ -25,7 +26,7 @@ export default function Checkout() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!!productId);
-  const [product, setProduct] = useState<ProductConfig | null>(null);
+  const [product, setProduct] = useState<ProductConfig & { facebookPixelId?: string } | null>(null);
   const [mpAccountId, setMpAccountId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function Checkout() {
         buttonGradientEnd: dbProduct.button_gradient_end,
         bannerUrl: dbProduct.banner_url || undefined,
         bottomBannerUrl: dbProduct.bottom_banner_url || undefined,
+        facebookPixelId: dbProduct.facebook_pixel_id || undefined,
       });
 
       setMpAccountId(dbProduct.mercado_pago_account_id);
@@ -72,6 +74,49 @@ export default function Checkout() {
 
     fetchProduct();
   }, [productId, navigate]);
+
+  // Facebook Pixel Implementation
+  useEffect(() => {
+    if (!product || !product.facebookPixelId) return;
+
+    // Load Pixel Script
+    !function (f, b, e, v, n, t, s)
+    // @ts-ignore
+    {
+      if (f.fbq) return; n = f.fbq = function () {
+        n.callMethod ?
+          n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+      };
+      // @ts-ignore
+      if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+      n.queue = []; t = b.createElement(e); t.async = !0;
+      t.src = v; s = b.getElementsByTagName(e)[0];
+      // @ts-ignore
+      s.parentNode.insertBefore(t, s)
+    }(window, document, 'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+
+    // Initialize Pixel
+    // @ts-ignore
+    window.fbq('init', product.facebookPixelId);
+
+    // Track PageView
+    // @ts-ignore
+    window.fbq('track', 'PageView');
+
+    // Track InitiateCheckout
+    // @ts-ignore
+    window.fbq('track', 'InitiateCheckout', {
+      content_ids: [product.id],
+      content_name: product.name,
+      currency: 'BRL',
+      value: product.price / 100,
+      content_type: 'product'
+    });
+
+    console.log("Pixel Fired:", product.facebookPixelId, "InitiateCheckout");
+
+  }, [product]);
 
   if (loading) {
     return (
