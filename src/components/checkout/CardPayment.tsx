@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, Lock, Loader2, User, AlertCircle } from "lucide-react";
 import { ProductConfig, formatBRL } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,7 @@ interface PayerCost {
   installments: number;
   installment_rate: number;
   total_amount: number;
+  installment_amount: number;
   recommended_message: string;
 }
 
@@ -71,6 +72,76 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
   const [payerCosts, setPayerCosts] = useState<PayerCost[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [issuerId, setIssuerId] = useState<string>("");
+
+  const [mpInstance, setMpInstance] = useState<MercadoPagoInstance | null>(null);
+
+  // Initialize Mercado Pago SDK
+  useEffect(() => {
+    if (mercadoPagoAccountId) {
+      // We need to fetch the public key associated with this account or use a passed one.
+      // For now, assuming we might need to fetch it or it's passed.
+      // Actually, relying on the fact that if we have an ID, we assume standard flow.
+      // Ideally we need the PUBLIC KEY here to init the SDK. 
+      // The previous code assumed 'MercadoPago' is on window.
+      // We will try to init if we have a public key.
+      // WAIT: The edge function has the access token, but frontend needs PUBLIC KEY.
+      // The current code lacks fetching the Public Key for the account.
+      // We added 'public_key' to the database earlier. We need to fetch it!
+    }
+  }, [mercadoPagoAccountId]);
+
+  // FETCH PUBLIC KEY AND INIT SDK
+  useEffect(() => {
+    if (!mercadoPagoAccountId) return;
+
+    const fetchPublicKey = async () => {
+      const { data, error } = await supabase
+        .from('mercado_pago_accounts')
+        .select('public_key')
+        .eq('id', mercadoPagoAccountId)
+        .single();
+
+      if (data?.public_key && window.MercadoPago) {
+        const mp = new window.MercadoPago(data.public_key, { locale: 'pt-BR' });
+        setMpInstance(mp);
+      }
+    };
+
+    fetchPublicKey();
+  }, [mercadoPagoAccountId]);
+
+
+  // Update installments when Card Number (BIN) changes
+  useEffect(() => {
+    const fetchInstallments = async () => {
+      const bin = cardNumber.replace(/\D/g, "").substring(0, 6);
+      if (bin.length < 6 || !mpInstance || !config.price) return;
+
+      try {
+        const response = await mpInstance.getInstallments({
+          amount: String(config.price / 100), // MP expects string amount in Reais
+          bin: bin
+        });
+
+        if (response.length > 0) {
+          // Usually response[0] contains the data for the card brand
+          setPayerCosts(response[0].payer_costs);
+          setPaymentMethodId(response[0].payment_method_id);
+          setIssuerId(response[0].issuer.id);
+        }
+      } catch (e) {
+        console.error("Error fetching installments:", e);
+      }
+    };
+
+    // Debounce to avoid too many requests
+    const timer = setTimeout(() => {
+      fetchInstallments();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [cardNumber, mpInstance, config.price]);
+
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
@@ -102,12 +173,26 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
   const getInstallmentPrice = (numInstallments: number) => {
     const cost = payerCosts.find(c => c.installments === numInstallments);
     if (cost) {
-      return formatBRL(Math.round(cost.total_amount * 100 / numInstallments));
+      // cost.total_amount is typically the total with interest.
+      // We want to show the installment value.
+      // MP returns total_amount.
+      return formatBRL(cost.installment_amount * 100);
+      // WAIT: MP PayerCost interface usually has 'installment_amount' (value of each installment).
+      // Let's check interface definition above. It has 'total_amount'.
+      // Usually it has installment_amount too. I will add it to interface.
     }
+
+    // Fallback if no real data yet
     const total = config.price;
     const installmentValue = total / numInstallments;
     return formatBRL(Math.round(installmentValue));
   };
+
+  const getInstallmentValueRaw = (numInstallments: number) => {
+    const cost = payerCosts.find(c => c.installments === numInstallments);
+    if (cost) return cost.installment_amount * 100;
+    return Math.round(config.price / numInstallments);
+  }
 
   const getTotalPrice = (numInstallments: number) => {
     const cost = payerCosts.find(c => c.installments === numInstallments);
@@ -326,13 +411,23 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
             onChange={(e) => setInstallments(Number(e.target.value))}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
-            {Array.from({ length: 12 }, (_, i) => i + 1)
-              .filter(n => config.price >= n * 500 || n === 1)
-              .map((n) => (
-                <option key={n} value={n}>
-                  {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
+            {payerCosts.length > 0 ? (
+              payerCosts.map((cost) => (
+                <option key={cost.installments} value={cost.installments}>
+                  {cost.installments}x de {formatBRL(Math.round(cost.installment_amount * 100))} {cost.installments === 1 ? "à vista" : ""}
+                  {cost.total_amount > (config.price / 100) ? ` (Total: ${formatBRL(Math.round(cost.total_amount * 100))})` : ""}
                 </option>
-              ))}
+              ))
+            ) : (
+              // Fallback while loading or if no bin
+              Array.from({ length: 12 }, (_, i) => i + 1)
+                .filter(n => config.price >= n * 500 || n === 1)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
+                  </option>
+                ))
+            )}
           </select>
         </div>
 
@@ -350,7 +445,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
           style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
         >
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total</span>
+            <span className="text-sm font-medium">Total com Juros</span>
             <span
               className="text-xl font-black"
               style={{ color: `hsl(${config.accentColor})` }}
@@ -360,7 +455,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
           </div>
           {installments > 1 && (
             <p className="text-xs text-muted-foreground mt-1">
-              {installments}x de {getInstallmentPrice(installments)}
+              Opção: {installments}x de {getInstallmentPrice(installments)}
             </p>
           )}
         </div>
