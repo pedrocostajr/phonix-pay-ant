@@ -563,6 +563,61 @@ export function ProductsManager() {
             </div>
           </div>
 
+          <div className="border-t border-border pt-4 mt-6 mb-4">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+              Automação de E-mail (Resend)
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Resend API Key
+                </label>
+                <input
+                  type="password"
+                  value={formData.resend_api_key || ""}
+                  onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
+                  placeholder="Ex: re_123456789..."
+                  className="admin-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Chave de API do Resend para enviar e-mails deste produto.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    E-mail do Remetente
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.sender_email || ""}
+                    onChange={(e) => setFormData({ ...formData, sender_email: e.target.value })}
+                    placeholder="Ex: financeiro@suaempresa.com"
+                    className="admin-input"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Deve ser um domínio verificado no Resend.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Assunto do E-mail
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.email_subject || ""}
+                    onChange={(e) => setFormData({ ...formData, email_subject: e.target.value })}
+                    placeholder="Ex: Sua compra foi aprovada!"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Preço (R$)</label>
