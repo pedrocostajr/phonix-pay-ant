@@ -29,6 +29,9 @@ interface Product {
   whatsapp_number: string | null;
   success_url: string | null;
   success_button_text: string | null;
+  resend_api_key: string | null;
+  sender_email: string | null;
+  email_subject: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -68,6 +71,9 @@ export function ProductsManager() {
     whatsapp_number: "",
     success_url: "",
     success_button_text: "",
+    resend_api_key: "",
+    sender_email: "",
+    email_subject: "",
     is_active: true,
   });
 
@@ -146,6 +152,9 @@ export function ProductsManager() {
       whatsapp_number: "",
       success_url: "",
       success_button_text: "",
+      resend_api_key: "",
+      sender_email: "",
+      email_subject: "",
       is_active: true,
     });
     setEditingProduct(null);
@@ -170,6 +179,9 @@ export function ProductsManager() {
       whatsapp_number: product.whatsapp_number || "",
       success_url: product.success_url || "",
       success_button_text: product.success_button_text || "",
+      resend_api_key: product.resend_api_key || "",
+      sender_email: product.sender_email || "",
+      email_subject: product.email_subject || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -238,6 +250,9 @@ export function ProductsManager() {
         whatsapp_number: formData.whatsapp_number?.trim() || null,
         success_url: formData.success_url?.trim() || null,
         success_button_text: formData.success_button_text?.trim() || null,
+        resend_api_key: formData.resend_api_key?.trim() || null,
+        sender_email: formData.sender_email?.trim() || null,
+        email_subject: formData.email_subject?.trim() || null,
         is_active: formData.is_active,
       };
 

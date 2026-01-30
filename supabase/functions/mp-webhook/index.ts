@@ -22,7 +22,7 @@ serve(async (req) => {
     // Mercado Pago sends different notification types
     if (body.type === "payment" || body.action === "payment.updated") {
       const paymentId = body.data?.id;
-      
+
       if (!paymentId) {
         console.log("No payment ID in webhook");
         return new Response("OK", { status: 200, headers: corsHeaders });
@@ -31,7 +31,7 @@ serve(async (req) => {
       // Find the payment in our database
       const { data: payment, error: findError } = await supabase
         .from("payments")
-        .select("*, mercado_pago_accounts(access_token)")
+        .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject)")
         .eq("external_id", String(paymentId))
         .maybeSingle();
 
@@ -62,6 +62,75 @@ serve(async (req) => {
 
       if (mpPayment.status === "approved") {
         updateData.paid_at = new Date().toISOString();
+
+        // Send Email if configured
+        try {
+          // Fetch product email config
+          const product = payment.products;
+
+          if (product && product.resend_api_key && product.sender_email) {
+            console.log("Sending email for product:", product.name);
+
+            const resendUrl = "https://api.resend.com/emails";
+
+            let emailBody = `
+              <h1>Obrigado pela sua compra!</h1>
+              <p>Olá,</p>
+              <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
+              <p><strong>Produto:</strong> ${product.name}</p>
+              <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
+            `;
+
+            if (product.success_message) {
+              emailBody += `
+                <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
+                  <h3>Instruções:</h3>
+                  <p>${product.success_message.replace(/\n/g, "<br>")}</p>
+                </div>
+              `;
+            }
+
+            if (product.success_url) {
+              const btnText = product.success_button_text || "Acessar Agora";
+              emailBody += `
+                <div style="margin: 30px 0; text-align: center;">
+                  <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                    ${btnText}
+                  </a>
+                </div>
+              `;
+            }
+
+            if (product.whatsapp_number) {
+              emailBody += `
+                <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
+              `;
+            }
+
+            const subject = product.email_subject || `Compra Aprovada: ${product.name}`;
+
+            const emailResponse = await fetch(resendUrl, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${product.resend_api_key}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: product.sender_email,
+                to: payment.payer_email,
+                subject: subject,
+                html: emailBody,
+              }),
+            });
+
+            const emailResult = await emailResponse.json();
+            console.log("Email sent result:", emailResult);
+          } else {
+            console.log("Email not configured for this product");
+          }
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+        }
       }
 
       const { error: updateError } = await supabase
