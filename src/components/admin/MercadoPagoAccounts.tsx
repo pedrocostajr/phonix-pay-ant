@@ -179,7 +179,7 @@ export function MercadoPagoAccounts() {
         <form onSubmit={handleAddAccount} className="admin-card space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Nome da Campanha
+              Nome da Conta
             </label>
             <input
               type="text"
