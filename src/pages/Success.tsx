@@ -20,6 +20,7 @@ interface PaymentDetails {
     whatsapp_number?: string | null;
     success_url?: string | null;
     success_button_text?: string | null;
+    facebook_pixel_id?: string | null;
   } | null;
 }
 
@@ -53,7 +54,8 @@ export default function Success() {
             success_message,
             whatsapp_number,
             success_url,
-            success_button_text
+            success_button_text,
+            facebook_pixel_id
           )
         `)
         .eq("id", paymentId)
@@ -70,6 +72,46 @@ export default function Success() {
 
     fetchPayment();
   }, [paymentId]);
+
+  // Fire Facebook Pixel Purchase Event
+  useEffect(() => {
+    if (!payment?.product?.facebook_pixel_id) return;
+
+    const pixelId = payment.product.facebook_pixel_id;
+    const value = payment.amount / 100; // Convert cents to decimal
+
+    // Load Pixel Script (Idempotent)
+    !function (f, b, e, v, n, t, s)
+    // @ts-ignore
+    {
+      if (f.fbq) return; n = f.fbq = function () {
+        n.callMethod ?
+          n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+      };
+      // @ts-ignore
+      if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+      n.queue = []; t = b.createElement(e); t.async = !0;
+      t.src = v; s = b.getElementsByTagName(e)[0];
+      // @ts-ignore
+      s.parentNode.insertBefore(t, s)
+    }(window, document, 'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+
+    // Initialize Pixel
+    // @ts-ignore
+    window.fbq('init', pixelId);
+
+    // Track Purchase
+    // @ts-ignore
+    window.fbq('track', 'Purchase', {
+      currency: 'BRL',
+      value: value,
+      content_name: payment.product.name,
+      content_ids: [paymentId], // Using payment ID as content ID for deduplication/tracking
+      content_type: 'product'
+    });
+
+  }, [payment]);
 
   if (loading) {
     return (
