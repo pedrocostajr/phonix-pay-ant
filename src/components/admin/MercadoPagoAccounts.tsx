@@ -185,7 +185,6 @@ export function MercadoPagoAccounts() {
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Ex: Campanha de Verão, Lançamento..."
               className="admin-input"
               required
             />
@@ -199,7 +198,6 @@ export function MercadoPagoAccounts() {
               type="text"
               value={newPublicKey}
               onChange={(e) => setNewPublicKey(e.target.value)}
-              placeholder="TEST-..."
               className="admin-input"
             />
             <p className="text-xs text-muted-foreground mt-2">
@@ -215,7 +213,6 @@ export function MercadoPagoAccounts() {
               type="password"
               value={newToken}
               onChange={(e) => setNewToken(e.target.value)}
-              placeholder="APP_USR-..."
               className="admin-input"
               required
             />
