@@ -48,35 +48,42 @@
     --phoenix-gradient-end: 142 76% 28%;
     --phoenix-shadow: 220 20% 10%;
     --phoenix-glow: 142 76% 50%;
-    
+
     /* Card shadows */
     --shadow-soft: 0 2px 8px -2px hsl(var(--phoenix-shadow) / 0.06),
-                   0 4px 16px -4px hsl(var(--phoenix-shadow) / 0.08);
+      0 4px 16px -4px hsl(var(--phoenix-shadow) / 0.08);
     --shadow-elevated: 0 4px 12px -2px hsl(var(--phoenix-shadow) / 0.08),
-                       0 8px 24px -4px hsl(var(--phoenix-shadow) / 0.12);
+      0 8px 24px -4px hsl(var(--phoenix-shadow) / 0.12);
     --shadow-floating: 0 8px 24px -4px hsl(var(--phoenix-shadow) / 0.12),
-                       0 16px 48px -8px hsl(var(--phoenix-shadow) / 0.16);
+      0 16px 48px -8px hsl(var(--phoenix-shadow) / 0.16);
   }
 
   /* Admin Dark Theme - Enhanced Readability */
-  .dark, [data-theme="admin"] {
-    --background: 225 25% 12%;      /* Slightly lighter background for better contrast */
-    --foreground: 210 40% 100%;     /* Pure white text */
+  .dark,
+  [data-theme="admin"] {
+    --background: 225 25% 12%;
+    /* Slightly lighter background for better contrast */
+    --foreground: 210 40% 100%;
+    /* Pure white text */
 
-    --card: 225 25% 16%;            /* Lighter card background */
+    --card: 225 25% 16%;
+    /* Lighter card background */
     --card-foreground: 210 40% 100%;
 
     --popover: 225 25% 16%;
     --popover-foreground: 210 40% 100%;
 
-    --primary: 142 76% 45%;         /* Slightly brighter primary */
+    --primary: 142 76% 45%;
+    /* Slightly brighter primary */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 20% 20%;       /* Lighter secondary */
+    --secondary: 225 20% 20%;
+    /* Lighter secondary */
     --secondary-foreground: 210 40% 100%;
 
     --muted: 225 20% 20%;
-    --muted-foreground: 220 10% 80%; /* Much brighter gray for readability */
+    --muted-foreground: 220 10% 80%;
+    /* Much brighter gray for readability */
 
     --accent: 142 76% 45%;
     --accent-foreground: 0 0% 100%;
@@ -84,7 +91,8 @@
     --destructive: 0 72% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 20% 25%;          /* More visible borders */
+    --border: 225 20% 25%;
+    /* More visible borders */
     --input: 225 20% 25%;
     --ring: 142 76% 45%;
 
@@ -111,6 +119,7 @@
 }
 
 @layer components {
+
   /* Phoenix Button Styles */
   .phoenix-btn {
     @apply relative overflow-hidden font-semibold transition-all duration-300;
@@ -128,21 +137,17 @@
 
   .phoenix-btn-primary {
     @apply text-white;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--phoenix-gradient-start)) 0%,
-      hsl(var(--phoenix-gradient-end)) 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(var(--phoenix-gradient-start)) 0%,
+        hsl(var(--phoenix-gradient-end)) 100%);
   }
 
   .phoenix-btn-primary::before {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--phoenix-glow) / 0.3) 0%,
-      transparent 50%
-    );
+    background: linear-gradient(135deg,
+        hsl(var(--phoenix-glow) / 0.3) 0%,
+        transparent 50%);
   }
 
   .phoenix-btn-primary:hover::before {
@@ -234,6 +239,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -245,6 +251,7 @@
       opacity: 0;
       transform: scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -252,11 +259,42 @@
   }
 
   @keyframes pulse-soft {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.7;
     }
+  }
+}
+
+/* Force high contrast for form elements in dark mode */
+@layer base {
+
+  .dark input,
+  .dark textarea,
+  .dark select,
+  [data-theme="admin"] input,
+  [data-theme="admin"] textarea,
+  [data-theme="admin"] select {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark label,
+  [data-theme="admin"] label {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark p,
+  [data-theme="admin"] p {
+    color: hsl(var(--foreground));
+  }
+
+  .dark .text-muted-foreground,
+  [data-theme="admin"] .text-muted-foreground {
+    color: hsl(var(--muted-foreground)) !important;
   }
 }
