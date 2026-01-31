@@ -2,6 +2,8 @@
 // Para atualizar, use o Painel Admin e cole o JSON gerado aqui
 
 export interface ProductConfig {
+  emailBody?: string;
+  installmentType?: "buyer" | "seller"; // Quem paga o parcelamento?
   id: string;
   name: string;
   description: string;

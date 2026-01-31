@@ -77,6 +77,7 @@ export function ProductsManager() {
     email_subject: "",
     email_body: "",
     is_active: true,
+    installment_type: "buyer",
   });
 
   const fetchData = async () => {
@@ -159,6 +160,7 @@ export function ProductsManager() {
       email_subject: "",
       email_body: "",
       is_active: true,
+      installment_type: "buyer",
     });
     setEditingProduct(null);
     setSaveError(null);
@@ -187,6 +189,7 @@ export function ProductsManager() {
       email_subject: product.email_subject || "",
       email_body: product.email_body || "",
       is_active: product.is_active,
+      installment_type: (product as any).installment_type || "buyer",
     });
     setEditingProduct(product);
     setShowForm(true);
@@ -259,6 +262,7 @@ export function ProductsManager() {
         email_subject: formData.email_subject?.trim() || null,
         email_body: formData.email_body?.trim() || null,
         is_active: formData.is_active,
+        installment_type: formData.installment_type,
       };
 
       console.log("Reduced data payload:", productData);
@@ -700,6 +704,60 @@ export function ProductsManager() {
                 Adicione uma conta Mercado Pago primeiro
               </p>
             )}
+          </div>
+
+          {/* Installment Type Selection */}
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border">
+            <label className="block text-sm font-medium mb-3">
+              Quem assume os juros do parcelamento?
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label
+                className={`relative flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${formData.installment_type === "buyer"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="installment_type"
+                  value="buyer"
+                  checked={formData.installment_type === "buyer"}
+                  onChange={(e) => setFormData({ ...formData, installment_type: e.target.value })}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="block text-sm font-bold">Cliente (Padrão)</span>
+                  <span className="text-xs text-muted-foreground">
+                    O cliente paga os juros. O valor das parcelas aumenta (ex: 12x de R$ 10,00 vira 12x de R$ 11,50).
+                  </span>
+                </div>
+              </label>
+
+              <label
+                className={`relative flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${formData.installment_type === "seller"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="installment_type"
+                  value="seller"
+                  checked={formData.installment_type === "seller"}
+                  onChange={(e) => setFormData({ ...formData, installment_type: e.target.value })}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="block text-sm font-bold">Vendedor (Sem Juros)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Você assume os juros. O cliente vê "12x Sem Juros".
+                    <br />
+                    <strong className="text-destructive">⚠️ Requer configuração no Mercado Pago!</strong>
+                  </span>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Color Selection */}

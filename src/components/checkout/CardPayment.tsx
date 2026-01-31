@@ -218,6 +218,11 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
   };
 
   const getInstallmentPrice = (numInstallments: number) => {
+    // If Seller pays interest, we just divide the price by N (interest-free display)
+    if (config.installmentType === 'seller') {
+      return formatBRL(Math.round(config.price / numInstallments));
+    }
+
     const cost = payerCosts.find(c => c.installments === numInstallments);
     if (cost) {
       if (cost.installment_amount) {
@@ -227,7 +232,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
       return formatBRL(Math.round((cost.total_amount * 100) / numInstallments));
     }
 
-    // Fallback logic with interest
+    // Fallback logic with interest (only for buyer type)
     const { installment } = calculateInstallmentWithInterest(config.price, numInstallments);
     return formatBRL(installment);
   };
@@ -241,6 +246,11 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
   }
 
   const getTotalPrice = (numInstallments: number) => {
+    // If Seller pays interest, total remains the product price
+    if (config.installmentType === 'seller') {
+      return formatBRL(config.price);
+    }
+
     const cost = payerCosts.find(c => c.installments === numInstallments);
     if (cost) {
       return formatBRL(Math.round(cost.total_amount * 100));
@@ -460,12 +470,25 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             {payerCosts.length > 0 ? (
-              payerCosts.map((cost) => (
-                <option key={cost.installments} value={cost.installments}>
-                  {cost.installments}x de {formatBRL(Math.round(cost.installment_amount * 100))} {cost.installments === 1 ? "à vista" : ""}
-                  {cost.total_amount > (config.price / 100) ? ` (Total: ${formatBRL(Math.round(cost.total_amount * 100))})` : ""}
-                </option>
-              ))
+              payerCosts.map((cost) => {
+                const isSellerType = config.installmentType === 'seller';
+                const installmentPrice = isSellerType
+                  ? formatBRL(Math.round(config.price / cost.installments))
+                  : formatBRL(Math.round(cost.installment_amount * 100));
+
+                const totalText = !isSellerType && cost.total_amount > (config.price / 100)
+                  ? ` (Total: ${formatBRL(Math.round(cost.total_amount * 100))})`
+                  : "";
+
+                const suffix = isSellerType && cost.installments > 1 ? " sem juros" : "";
+
+                return (
+                  <option key={cost.installments} value={cost.installments}>
+                    {cost.installments}x de {installmentPrice}{suffix} {cost.installments === 1 ? "à vista" : ""}
+                    {totalText}
+                  </option>
+                );
+              })
             ) : (
               // Fallback while loading or if no bin
               Array.from({ length: 12 }, (_, i) => i + 1)
@@ -505,6 +528,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
           {installments > 1 && (
             <p className="text-xs text-muted-foreground mt-1">
               Opção: {installments}x de {getInstallmentPrice(installments)}
+              {config.installmentType === 'seller' ? " sem juros" : ""}
             </p>
           )}
         </div>
