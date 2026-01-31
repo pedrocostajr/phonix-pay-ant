@@ -199,20 +199,32 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
     return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9, 11)}`;
   };
 
-  // Taxa de juros mensal ajustada para ~3.2% para bater com o valor de 12x de 8.04 (79.00)
-  // Ex: 79.00 em 12x dá ~8.04
-  const MONTHLY_INTEREST_RATE = 0.032;
+  // Tabela de acréscimos baseada nos prints do usuário
+  // 2x: 9.64%
+  // 7x: 16.72%
+  // 12x: 22.11%
+  // Valores intermediários interpolados linearmente
+  const INSTALLMENT_FEES: Record<number, number> = {
+    1: 0,
+    2: 9.64,
+    3: 11.06,
+    4: 12.47,
+    5: 13.89,
+    6: 15.30,
+    7: 16.72,
+    8: 17.80,
+    9: 18.88,
+    10: 19.95,
+    11: 21.03,
+    12: 22.11,
+  };
 
   const calculateInstallmentWithInterest = (principal: number, months: number) => {
     if (months === 1) return { installment: principal, total: principal };
 
-    // Fórmula Price: R = P * [i * (1+i)^n] / [(1+i)^n - 1]
-    const i = MONTHLY_INTEREST_RATE;
-    const n = months;
-
-    const factor = (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
-    const installmentValue = principal * factor;
-    const totalValue = installmentValue * n;
+    const feePercentage = INSTALLMENT_FEES[months] || 0;
+    const totalValue = principal * (1 + feePercentage / 100);
+    const installmentValue = totalValue / months;
 
     return {
       installment: Math.round(installmentValue),
@@ -507,7 +519,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
           </div>
           {installments > 1 && (
             <p className="text-xs text-muted-foreground mt-1">
-              Opção: {installments}x de {getInstallmentPrice(installments)}
+              Opção: {installments}x de {getInstallmentPrice(installments)} (Juros: {INSTALLMENT_FEES[installments]}%)
             </p>
           )}
         </div>
