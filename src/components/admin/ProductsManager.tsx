@@ -32,6 +32,7 @@ interface Product {
   resend_api_key: string | null;
   sender_email: string | null;
   email_subject: string | null;
+  email_body: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
 }
 
@@ -74,6 +75,7 @@ export function ProductsManager() {
     resend_api_key: "",
     sender_email: "",
     email_subject: "",
+    email_body: "",
     is_active: true,
   });
 
@@ -155,6 +157,7 @@ export function ProductsManager() {
       resend_api_key: "",
       sender_email: "",
       email_subject: "",
+      email_body: "",
       is_active: true,
     });
     setEditingProduct(null);
@@ -182,6 +185,7 @@ export function ProductsManager() {
       resend_api_key: product.resend_api_key || "",
       sender_email: product.sender_email || "",
       email_subject: product.email_subject || "",
+      email_body: product.email_body || "",
       is_active: product.is_active,
     });
     setEditingProduct(product);
@@ -253,6 +257,7 @@ export function ProductsManager() {
         resend_api_key: formData.resend_api_key?.trim() || null,
         sender_email: formData.sender_email?.trim() || null,
         email_subject: formData.email_subject?.trim() || null,
+        email_body: formData.email_body?.trim() || null,
         is_active: formData.is_active,
       };
 
@@ -614,6 +619,21 @@ export function ProductsManager() {
                     className="admin-input"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Corpo do E-mail (HTML Personalizado)
+                </label>
+                <textarea
+                  value={formData.email_body || ""}
+                  onChange={(e) => setFormData({ ...formData, email_body: e.target.value })}
+                  placeholder="<html>...</html> (Deixe em branco para usar o modelo padrão)"
+                  className="admin-input h-48 font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se preenchido, este HTML substituirá o modelo padrão. Variáveis disponíveis: {"{{nome}}"}, {"{{email}}"}, {"{{produto}}"}, {"{{valor}}"}, {"{{link_acesso}}"} .
+                </p>
               </div>
             </div>
           </div>

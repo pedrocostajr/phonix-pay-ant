@@ -31,7 +31,7 @@ serve(async (req) => {
       // Find the payment in our database
       const { data: payment, error: findError } = await supabase
         .from("payments")
-        .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject)")
+        .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body)")
         .eq("external_id", String(paymentId))
         .maybeSingle();
 
@@ -73,38 +73,51 @@ serve(async (req) => {
 
             const resendUrl = "https://api.resend.com/emails";
 
-            let emailBody = `
-              <h1>Obrigado pela sua compra!</h1>
-              <p>Olá,</p>
-              <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
-              <p><strong>Produto:</strong> ${product.name}</p>
-              <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
-            `;
+            let emailBody;
 
-            if (product.success_message) {
-              emailBody += `
-                <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-                  <h3>Instruções:</h3>
-                  <p>${product.success_message.replace(/\n/g, "<br>")}</p>
-                </div>
+            if (product.email_body && product.email_body.trim() !== "") {
+              // Use Custom Body with Validations
+              emailBody = product.email_body
+                .replace(/{{nome}}/g, payment.payer_name || "Cliente")
+                .replace(/{{email}}/g, payment.payer_email)
+                .replace(/{{produto}}/g, product.name)
+                .replace(/{{valor}}/g, new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100))
+                .replace(/{{link_acesso}}/g, product.success_url || "#");
+            } else {
+              // Default Template
+              emailBody = `
+                <h1>Obrigado pela sua compra!</h1>
+                <p>Olá,</p>
+                <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
+                <p><strong>Produto:</strong> ${product.name}</p>
+                <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
               `;
-            }
 
-            if (product.success_url) {
-              const btnText = product.success_button_text || "Acessar Agora";
-              emailBody += `
-                <div style="margin: 30px 0; text-align: center;">
-                  <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                    ${btnText}
-                  </a>
-                </div>
-              `;
-            }
+              if (product.success_message) {
+                emailBody += `
+                  <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
+                    <h3>Instruções:</h3>
+                    <p>${product.success_message.replace(/\n/g, "<br>")}</p>
+                  </div>
+                `;
+              }
 
-            if (product.whatsapp_number) {
-              emailBody += `
-                <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
-              `;
+              if (product.success_url) {
+                const btnText = product.success_button_text || "Acessar Agora";
+                emailBody += `
+                  <div style="margin: 30px 0; text-align: center;">
+                    <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                      ${btnText}
+                    </a>
+                  </div>
+                `;
+              }
+
+              if (product.whatsapp_number) {
+                emailBody += `
+                  <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
+                `;
+              }
             }
 
             const subject = product.email_subject || `Compra Aprovada: ${product.name}`;
