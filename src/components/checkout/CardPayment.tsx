@@ -202,8 +202,8 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
   // Tabela de acréscimos baseada nos prints do usuário
   // 2x: 9.64%
   // 7x: 16.72%
+  // 10x: 20.70% (Ajustado via feedback)
   // 12x: 22.11%
-  // Valores intermediários interpolados linearmente
   const INSTALLMENT_FEES: Record<number, number> = {
     1: 0,
     2: 9.64,
@@ -212,10 +212,10 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
     5: 13.89,
     6: 15.30,
     7: 16.72,
-    8: 17.80,
-    9: 18.88,
-    10: 19.95,
-    11: 21.03,
+    8: 18.05,
+    9: 19.38,
+    10: 20.70,
+    11: 21.41,
     12: 22.11,
   };
 
