@@ -113,6 +113,17 @@ export default function Success() {
 
   }, [payment]);
 
+  // Handle Redirect
+  useEffect(() => {
+    if (payment?.product?.success_url) {
+      const timer = setTimeout(() => {
+        window.location.href = payment.product.success_url!;
+      }, 3000); // 3 seconds delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [payment]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
