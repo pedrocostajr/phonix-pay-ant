@@ -75,17 +75,36 @@ export function SubscriptionsManager() {
             sub.products?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getWhatsAppLink = (sub: Subscription) => {
-        const phone = "";
+    const getWhatsAppLink = (sub: any) => {
+        try {
+            const checkoutLink = `${window.location.origin}/checkout/${sub.product_id}`;
 
-        const checkoutLink = `${window.location.origin}/checkout/${sub.product_id}`;
+            // Safe access to product name - handle Array or Object response from Supabase
+            let productName = "Produto";
+            if (Array.isArray(sub.products) && sub.products.length > 0) {
+                productName = sub.products[0]?.name || "Produto";
+            } else if (sub.products && typeof sub.products === 'object') {
+                productName = (sub.products as any).name || "Produto";
+            }
 
-        // Safe access to product name
-        const productName = sub.products?.name || "Produto";
+            let dateStr = "";
+            try {
+                if (sub.expires_at) {
+                    dateStr = format(new Date(sub.expires_at), "dd/MM/yyyy");
+                } else {
+                    dateStr = "Data Indisponível";
+                }
+            } catch (e) {
+                dateStr = "Data Inválida";
+            }
 
-        const message = `Olá ${sub.payer_name}, sua assinatura do pacote ${productName} vence em ${format(new Date(sub.expires_at), "dd/MM/yyyy")}. Renove agora e garanta a continuidade do seu acesso: ${checkoutLink}`;
+            const message = `Olá ${sub.payer_name || "Cliente"}, sua assinatura do pacote ${productName} vence em ${dateStr}. Renove agora e garanta a continuidade do seu acesso: ${checkoutLink}`;
 
-        return `https://wa.me/?text=${encodeURIComponent(message)}`;
+            return `https://wa.me/?text=${encodeURIComponent(message)}`;
+        } catch (e) {
+            console.error("Error generating link", e);
+            return "#";
+        }
     };
 
     return (
@@ -133,22 +152,43 @@ export function SubscriptionsManager() {
                             </thead>
                             <tbody className="divide-y divide-border/50">
                                 {filteredSubscriptions.map((sub) => {
-                                    const daysLeft = getDaysUntilExpiration(sub.expires_at);
-                                    const isExpiring = daysLeft <= 30;
-                                    const isExpired = daysLeft < 0;
+                                    // Safe date calculation
+                                    let daysLeft = 0;
+                                    let isExpiring = false;
+                                    let isExpired = false;
+                                    let dateDisplay = "Data inválida";
+
+                                    try {
+                                        if (sub.expires_at) {
+                                            daysLeft = getDaysUntilExpiration(sub.expires_at);
+                                            isExpiring = daysLeft <= 30;
+                                            isExpired = daysLeft < 0;
+                                            dateDisplay = format(new Date(sub.expires_at), "dd/MM/yyyy");
+                                        }
+                                    } catch (e) {
+                                        console.error("Date error", e);
+                                    }
+
+                                    // Handle product name safely for display
+                                    let displayProductName = "Produto";
+                                    if (Array.isArray(sub.products) && sub.products.length > 0) {
+                                        displayProductName = sub.products[0]?.name;
+                                    } else if (sub.products && typeof sub.products === 'object') {
+                                        displayProductName = (sub.products as any).name;
+                                    }
 
                                     return (
-                                        <tr key={sub.id} className="group hover:bg-secondary/20 transition-colors">
+                                        <tr key={sub.id || Math.random()} className="group hover:bg-secondary/20 transition-colors">
                                             <td className="py-4 pl-4">
-                                                <div className="font-medium">{sub.payer_name}</div>
+                                                <div className="font-medium">{sub.payer_name || "Sem Nome"}</div>
                                                 <div className="text-xs text-muted-foreground">
-                                                    {sub.payer_email}
+                                                    {sub.payer_email || ""}
                                                 </div>
                                             </td>
-                                            <td className="py-4 text-sm">{sub.products?.name}</td>
+                                            <td className="py-4 text-sm">{displayProductName || "Sem produto"}</td>
                                             <td className="py-4 text-sm">
                                                 <div className="flex flex-col">
-                                                    <span>{format(new Date(sub.expires_at), "dd/MM/yyyy")}</span>
+                                                    <span>{dateDisplay}</span>
                                                     <span className={`text-xs ${isExpired ? "text-red-500" : isExpiring ? "text-amber-500" : "text-muted-foreground"}`}>
                                                         {isExpired ? "Expirado" : `${daysLeft} dias restantes`}
                                                     </span>
