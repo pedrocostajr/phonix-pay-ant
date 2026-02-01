@@ -182,7 +182,6 @@ export function ProductsManager() {
       email_subject: "",
       email_body: "",
       is_active: true,
-      is_active: true,
       installment_type: "buyer",
       payment_provider: "mercadopago",
       asaas_account_id: "",
@@ -214,7 +213,6 @@ export function ProductsManager() {
       sender_email: product.sender_email || "",
       email_subject: product.email_subject || "",
       email_body: product.email_body || "",
-      is_active: product.is_active,
       is_active: product.is_active,
       installment_type: (product as any).installment_type || "buyer",
       payment_provider: (product as any).payment_provider || "mercadopago",
@@ -275,7 +273,7 @@ export function ProductsManager() {
         original_price: originalPrice
           ? Math.round(originalPrice * 100)
           : null,
-        pix_discount: parseInt(formData.pix_discount) || 10,
+        pix_discount: formData.pix_discount === "" ? 0 : parseInt(formData.pix_discount),
         accent_color: formData.accent_color,
         button_gradient_start: formData.button_gradient_start,
         button_gradient_end: formData.button_gradient_end,
@@ -291,7 +289,6 @@ export function ProductsManager() {
         sender_email: formData.sender_email?.trim() || null,
         email_subject: formData.email_subject?.trim() || null,
         email_body: formData.email_body?.trim() || null,
-        is_active: formData.is_active,
         is_active: formData.is_active,
         installment_type: formData.installment_type,
         payment_provider: formData.payment_provider,
