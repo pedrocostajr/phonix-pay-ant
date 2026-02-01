@@ -20,47 +20,81 @@ serve(async (req) => {
     console.log("Webhook received:", JSON.stringify(body));
 
     // Mercado Pago sends different notification types
-    if (body.type === "payment" || body.action === "payment.updated") {
-      const paymentId = body.data?.id;
+    // Handle both 'payment' and 'subscription_preapproval'
+    const isPayment = body.type === "payment" || body.action === "payment.updated";
+    const isSubscription = body.type === "subscription_preapproval" || body.topic === "preapproval";
 
-      if (!paymentId) {
-        console.log("No payment ID in webhook");
+    if (isPayment || isSubscription) {
+      const entityId = body.data?.id || body.id; // Payments use data.id, Preapprovals use id sometimes
+
+      if (!entityId) {
+        console.log("No ID in webhook");
         return new Response("OK", { status: 200, headers: corsHeaders });
       }
+
+      console.log(`Processing webhook for ${isSubscription ? "Subscription" : "Payment"} ID: ${entityId}`);
 
       // Find the payment in our database
       const { data: payment, error: findError } = await supabase
         .from("payments")
         .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body)")
-        .eq("external_id", String(paymentId))
+        .eq("external_id", String(entityId))
         .maybeSingle();
 
       if (findError || !payment) {
-        console.log("Payment not found:", paymentId);
+        console.log("Payment/Subscription not found:", entityId);
         return new Response("OK", { status: 200, headers: corsHeaders });
       }
 
-      // Fetch payment status from Mercado Pago
-      const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-        headers: {
-          "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}`,
-        },
-      });
+      let status = "pending";
+      let approved = false;
 
-      if (!mpResponse.ok) {
-        console.error("Failed to fetch payment from MP");
-        return new Response("OK", { status: 200, headers: corsHeaders });
+      if (isSubscription) {
+        // Fetch Preapproval Status
+        const subResponse = await fetch(`https://api.mercadopago.com/preapproval/${entityId}`, {
+          headers: {
+            "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}`,
+          },
+        });
+
+        if (!subResponse.ok) {
+          console.error("Failed to fetch subscription from MP");
+          return new Response("OK", { status: 200, headers: corsHeaders });
+        }
+
+        const subData = await subResponse.json();
+        console.log("MP Subscription status:", subData.status);
+
+        // Map 'authorized' to 'approved' for our logic
+        status = subData.status === "authorized" ? "approved" : subData.status;
+        approved = status === "approved";
+
+      } else {
+        // Fetch Payment Status
+        const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${entityId}`, {
+          headers: {
+            "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}`,
+          },
+        });
+
+        if (!mpResponse.ok) {
+          console.error("Failed to fetch payment from MP");
+          return new Response("OK", { status: 200, headers: corsHeaders });
+        }
+
+        const mpPayment = await mpResponse.json();
+        console.log("MP Payment status:", mpPayment.status);
+
+        status = mpPayment.status;
+        approved = status === "approved";
       }
-
-      const mpPayment = await mpResponse.json();
-      console.log("MP Payment status:", mpPayment.status);
 
       // Update payment status in database
       const updateData: Record<string, unknown> = {
-        status: mpPayment.status,
+        status: status,
       };
 
-      if (mpPayment.status === "approved") {
+      if (approved) {
         updateData.paid_at = new Date().toISOString();
 
         // Send Email if configured
