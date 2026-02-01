@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Users, CreditCard, Package, Loader2, Building2, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
+import { ProductsManager } from "@/components/admin/ProductsManager";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
 import { AsaasManager } from "@/components/admin/AsaasManager";
 import { SubscriptionsManager } from "@/components/admin/SubscriptionsManager";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 type Tab = "products" | "mercadopago" | "asaas" | "team" | "subscriptions";
 
@@ -98,9 +100,7 @@ export default function Admin() {
           ))}
         </div>
 
-        import {ErrorBoundary} from "@/components/ui/error-boundary";
 
-        /* ... */
 
         {/* Content */}
         <div className="min-h-[400px]">
