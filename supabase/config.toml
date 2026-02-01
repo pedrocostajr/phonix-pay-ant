@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.create-team-member]
 verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
