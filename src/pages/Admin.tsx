@@ -98,12 +98,38 @@ export default function Admin() {
           ))}
         </div>
 
+        import {ErrorBoundary} from "@/components/ui/error-boundary";
+
+        /* ... */
+
         {/* Content */}
-        {activeTab === "products" && <ProductsManager />}
-        {activeTab === "subscriptions" && <SubscriptionsManager />}
-        {activeTab === "mercadopago" && <MercadoPagoAccounts />}
-        {activeTab === "asaas" && <AsaasManager />}
-        {activeTab === "team" && <TeamManagement isAdmin={role === "admin"} />}
+        <div className="min-h-[400px]">
+          {activeTab === "products" && (
+            <ErrorBoundary name="Produtos">
+              <ProductsManager />
+            </ErrorBoundary>
+          )}
+          {activeTab === "subscriptions" && (
+            <ErrorBoundary name="Assinaturas">
+              <SubscriptionsManager />
+            </ErrorBoundary>
+          )}
+          {activeTab === "mercadopago" && (
+            <ErrorBoundary name="Mercado Pago">
+              <MercadoPagoAccounts />
+            </ErrorBoundary>
+          )}
+          {activeTab === "asaas" && (
+            <ErrorBoundary name="Asaas">
+              <AsaasManager />
+            </ErrorBoundary>
+          )}
+          {activeTab === "team" && (
+            <ErrorBoundary name="Equipe">
+              <TeamManagement isAdmin={role === "admin"} />
+            </ErrorBoundary>
+          )}
+        </div>
       </div>
     </div>
   );
