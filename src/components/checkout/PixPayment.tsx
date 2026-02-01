@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 interface PixPaymentProps {
   config: ProductConfig;
   mercadoPagoAccountId?: string | null;
+  asaasAccountId?: string | null;
 }
 
 interface PixPaymentData {
@@ -20,7 +21,7 @@ interface PixPaymentData {
   status: string;
 }
 
-export function PixPayment({ config, mercadoPagoAccountId }: PixPaymentProps) {
+export function PixPayment({ config, mercadoPagoAccountId, asaasAccountId }: PixPaymentProps) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15 * 60);
   const [email, setEmail] = useState("");
@@ -28,13 +29,13 @@ export function PixPayment({ config, mercadoPagoAccountId }: PixPaymentProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pixData, setPixData] = useState<PixPaymentData | null>(null);
-  
+
   const pixPrice = getPixPrice(config);
 
   // Countdown timer
   useEffect(() => {
     if (!pixData) return;
-    
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -151,13 +152,13 @@ export function PixPayment({ config, mercadoPagoAccountId }: PixPaymentProps) {
           )}
 
           {/* Price Summary */}
-          <div 
+          <div
             className="rounded-xl p-4"
             style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
           >
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Total no PIX</span>
-              <span 
+              <span
                 className="text-xl font-black"
                 style={{ color: `hsl(${config.accentColor})` }}
               >
@@ -214,17 +215,17 @@ export function PixPayment({ config, mercadoPagoAccountId }: PixPaymentProps) {
       {/* QR Code */}
       <div className="aspect-square max-w-[200px] mx-auto mb-6 rounded-2xl overflow-hidden bg-white p-2">
         {pixData.qrCodeBase64 ? (
-          <img 
+          <img
             src={`data:image/png;base64,${pixData.qrCodeBase64}`}
             alt="QR Code PIX"
             className="w-full h-full object-contain"
           />
         ) : (
-          <div 
+          <div
             className="w-full h-full flex items-center justify-center"
             style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
           >
-            <QrCode 
+            <QrCode
               className="w-24 h-24"
               style={{ color: `hsl(${config.accentColor})` }}
             />
@@ -233,13 +234,13 @@ export function PixPayment({ config, mercadoPagoAccountId }: PixPaymentProps) {
       </div>
 
       {/* Price Summary */}
-      <div 
+      <div
         className="rounded-xl p-4 mb-6"
         style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
       >
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium">Total no PIX</span>
-          <span 
+          <span
             className="text-xl font-black"
             style={{ color: `hsl(${config.accentColor})` }}
           >

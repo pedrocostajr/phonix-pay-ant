@@ -7,11 +7,12 @@ import { CardPayment } from "./CardPayment";
 interface CheckoutCardProps {
   config: ProductConfig;
   mercadoPagoAccountId?: string | null;
+  asaasAccountId?: string | null;
 }
 
 type PaymentMethod = "pix" | "card";
 
-export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps) {
+export function CheckoutCard({ config, mercadoPagoAccountId, asaasAccountId }: CheckoutCardProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const pixPrice = getPixPrice(config);
 
@@ -123,9 +124,9 @@ export function CheckoutCard({ config, mercadoPagoAccountId }: CheckoutCardProps
         style={{ animationDelay: "0.3s" }}
       >
         {paymentMethod === "pix" ? (
-          <PixPayment config={config} mercadoPagoAccountId={mercadoPagoAccountId} />
+          <PixPayment config={config} mercadoPagoAccountId={mercadoPagoAccountId} asaasAccountId={asaasAccountId} />
         ) : (
-          <CardPayment config={config} mercadoPagoAccountId={mercadoPagoAccountId} />
+          <CardPayment config={config} mercadoPagoAccountId={mercadoPagoAccountId} asaasAccountId={asaasAccountId} />
         )}
       </div>
 
