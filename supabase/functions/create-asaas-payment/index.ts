@@ -134,7 +134,13 @@ serve(async (req) => {
             };
         }
 
-        if (product.subscription_cycle && billingType === "CREDIT_CARD") {
+        // Check if we should process as a subscription or a one-time payment with installments
+        // Asaas Subscriptions DO NOT support installments on the recurring value.
+        // So if the user selected installments > 1, we treat it as a standard credit card payment
+        // for the full amount (e.g. 1 Year Access), but processed as a one-time transaction.
+        const isInstallmentSubscription = product.subscription_cycle && billingType === "CREDIT_CARD" && installments && installments > 1;
+
+        if (product.subscription_cycle && billingType === "CREDIT_CARD" && !isInstallmentSubscription) {
             endpoint = "/subscriptions";
             payload.cycle = product.subscription_cycle;
             payload.nextDueDate = payload.dueDate;
@@ -142,7 +148,7 @@ serve(async (req) => {
             delete payload.installmentCount;
             delete payload.installmentValue;
         } else {
-            // One-time payment (Card or PIX)
+            // One-time payment (Card or PIX) or Annual Plan with Installments
             if (billingType === "CREDIT_CARD" && installments && installments > 1) {
                 payload.installmentCount = installments;
                 payload.installmentValue = payload.value / installments;

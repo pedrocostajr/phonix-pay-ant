@@ -63,6 +63,9 @@ interface PayerCost {
 export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: CardPaymentProps) {
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
+
+
+
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [email, setEmail] = useState("");
