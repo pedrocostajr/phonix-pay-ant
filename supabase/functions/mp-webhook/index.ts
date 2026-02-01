@@ -110,86 +110,94 @@ serve(async (req) => {
       if (approved) {
         updateData.paid_at = new Date().toISOString();
 
-        // Send Email if configured
-        try {
-          // Fetch product email config
-          const product = payment.products;
+        // Send Email if configured AND not already sent
+        if (!payment.email_sent) {
+          try {
+            // Fetch product email config
+            const product = payment.products;
 
-          if (product && product.resend_api_key && product.sender_email) {
-            console.log("Sending email for product:", product.name);
+            if (product && product.resend_api_key && product.sender_email) {
+              console.log("Sending email for product:", product.name);
 
-            const resendUrl = "https://api.resend.com/emails";
+              const resendUrl = "https://api.resend.com/emails";
 
-            let emailBody;
+              let emailBody;
 
-            if (product.email_body && product.email_body.trim() !== "") {
-              // Use Custom Body with Validations
-              emailBody = product.email_body
-                .replace(/{{nome}}/g, payment.payer_name || "Cliente")
-                .replace(/{{email}}/g, payment.payer_email)
-                .replace(/{{produto}}/g, product.name)
-                .replace(/{{valor}}/g, new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100))
-                .replace(/{{link_acesso}}/g, product.success_url || "#");
+              if (product.email_body && product.email_body.trim() !== "") {
+                // Use Custom Body with Validations
+                emailBody = product.email_body
+                  .replace(/{{nome}}/g, payment.payer_name || "Cliente")
+                  .replace(/{{email}}/g, payment.payer_email)
+                  .replace(/{{produto}}/g, product.name)
+                  .replace(/{{valor}}/g, new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100))
+                  .replace(/{{link_acesso}}/g, product.success_url || "#");
+              } else {
+                // Default Template
+                emailBody = `
+                    <h1>Obrigado pela sua compra!</h1>
+                    <p>Olá,</p>
+                    <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
+                    <p><strong>Produto:</strong> ${product.name}</p>
+                    <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
+                  `;
+
+                if (product.success_message) {
+                  emailBody += `
+                      <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
+                        <h3>Instruções:</h3>
+                        <p>${product.success_message.replace(/\n/g, "<br>")}</p>
+                      </div>
+                    `;
+                }
+
+                if (product.success_url) {
+                  const btnText = product.success_button_text || "Acessar Agora";
+                  emailBody += `
+                      <div style="margin: 30px 0; text-align: center;">
+                        <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                          ${btnText}
+                        </a>
+                      </div>
+                    `;
+                }
+
+                if (product.whatsapp_number) {
+                  emailBody += `
+                      <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
+                    `;
+                }
+              }
+
+              const subject = product.email_subject || `Compra Aprovada: ${product.name}`;
+
+              const emailResponse = await fetch(resendUrl, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${product.resend_api_key}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: product.sender_email,
+                  to: payment.payer_email,
+                  subject: subject,
+                  html: emailBody,
+                }),
+              });
+
+              const emailResult = await emailResponse.json();
+              console.log("Email sent result:", emailResult);
+
+              // Mark as sent to prevent duplicates
+              updateData.email_sent = true;
+
             } else {
-              // Default Template
-              emailBody = `
-                <h1>Obrigado pela sua compra!</h1>
-                <p>Olá,</p>
-                <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
-                <p><strong>Produto:</strong> ${product.name}</p>
-                <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
-              `;
-
-              if (product.success_message) {
-                emailBody += `
-                  <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-                    <h3>Instruções:</h3>
-                    <p>${product.success_message.replace(/\n/g, "<br>")}</p>
-                  </div>
-                `;
-              }
-
-              if (product.success_url) {
-                const btnText = product.success_button_text || "Acessar Agora";
-                emailBody += `
-                  <div style="margin: 30px 0; text-align: center;">
-                    <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                      ${btnText}
-                    </a>
-                  </div>
-                `;
-              }
-
-              if (product.whatsapp_number) {
-                emailBody += `
-                  <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
-                `;
-              }
+              console.log("Email not configured for this product");
             }
-
-            const subject = product.email_subject || `Compra Aprovada: ${product.name}`;
-
-            const emailResponse = await fetch(resendUrl, {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${product.resend_api_key}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                from: product.sender_email,
-                to: payment.payer_email,
-                subject: subject,
-                html: emailBody,
-              }),
-            });
-
-            const emailResult = await emailResponse.json();
-            console.log("Email sent result:", emailResult);
-          } else {
-            console.log("Email not configured for this product");
+          } catch (emailError) {
+            console.error("Failed to send email:", emailError);
           }
-        } catch (emailError) {
-          console.error("Failed to send email:", emailError);
+        } else {
+          console.log("Email already sent for this payment.");
         }
       }
 

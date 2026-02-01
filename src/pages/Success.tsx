@@ -73,6 +73,19 @@ export default function Success() {
     fetchPayment();
   }, [paymentId]);
 
+  // Trigger Email Sending (Redundancy)
+  useEffect(() => {
+    if (paymentId && payment?.status === 'approved') {
+      console.log("Attempting to trigger email send...");
+      supabase.functions.invoke("send-payment-email", {
+        body: { paymentId: paymentId }
+      }).then(({ data, error }) => {
+        if (error) console.error("Error triggering email:", error);
+        else console.log("Email trigger response:", data);
+      });
+    }
+  }, [paymentId, payment?.status]);
+
   // Fire Facebook Pixel Purchase Event
   useEffect(() => {
     if (!payment?.product?.facebook_pixel_id) return;
