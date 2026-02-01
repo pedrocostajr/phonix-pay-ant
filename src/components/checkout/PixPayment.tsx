@@ -74,7 +74,7 @@ export function PixPayment({ config, mercadoPagoAccountId, asaasAccountId }: Pix
       return;
     }
 
-    if (!mercadoPagoAccountId) {
+    if (!mercadoPagoAccountId && !asaasAccountId) {
       setError("Este produto não está configurado para receber pagamentos PIX");
       return;
     }
@@ -83,20 +83,44 @@ export function PixPayment({ config, mercadoPagoAccountId, asaasAccountId }: Pix
     setError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke("create-pix-payment", {
-        body: {
-          productId: config.id,
-          payerEmail: email,
-          payerName: name || undefined,
-        },
-      });
+      let data;
+      let fnError;
+
+      // Asaas Flow
+      if (config.paymentProvider === 'asaas' || asaasAccountId) {
+        const response = await supabase.functions.invoke("create-asaas-payment", {
+          body: {
+            productId: config.id,
+            payerEmail: email,
+            payerName: name || undefined,
+            billingType: 'PIX',
+            // Asaas PIX doesn't strictly require address, but if validation fails we might need to add it later.
+            // Usually for PIX only CPF/CNPJ is required if it's not a "Charge" but a "Payment".
+            // Since we are creating a Charge with billingType PIX, basic contact info is usually enough.
+            // Documentation says: customer is required. create-asaas-payment handles customer creation.
+          },
+        });
+        data = response.data;
+        fnError = response.error;
+      } else {
+        // Mercado Pago Flow
+        const response = await supabase.functions.invoke("create-pix-payment", {
+          body: {
+            productId: config.id,
+            payerEmail: email,
+            payerName: name || undefined,
+          },
+        });
+        data = response.data;
+        fnError = response.error;
+      }
 
       if (fnError) {
         throw new Error(fnError.message);
       }
 
       if (data.error) {
-        throw new Error(data.error);
+        throw new Error(data.details || data.error);
       }
 
       setPixData(data);
@@ -169,7 +193,7 @@ export function PixPayment({ config, mercadoPagoAccountId, asaasAccountId }: Pix
 
           <button
             onClick={handleGeneratePix}
-            disabled={loading || !mercadoPagoAccountId}
+            disabled={loading || (!mercadoPagoAccountId && !asaasAccountId)}
             className="phoenix-btn phoenix-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
             style={{
               background: `linear-gradient(135deg, hsl(${config.buttonGradientStart}) 0%, hsl(${config.buttonGradientEnd}) 100%)`,
@@ -188,9 +212,9 @@ export function PixPayment({ config, mercadoPagoAccountId, asaasAccountId }: Pix
             )}
           </button>
 
-          {!mercadoPagoAccountId && (
+          {!mercadoPagoAccountId && !asaasAccountId && (
             <p className="text-xs text-center text-destructive">
-              ⚠️ Este produto não possui conta Mercado Pago configurada
+              ⚠️ Este produto não possui conta de pagamento configurada
             </p>
           )}
         </div>

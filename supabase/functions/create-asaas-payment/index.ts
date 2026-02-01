@@ -21,7 +21,11 @@ interface AsaasPaymentRequest {
     payerCpfCnpj: string;
     payerPhone?: string;
     installments?: number;
-    cardData: CardData;
+    cardData?: CardData;
+    billingType?: 'CREDIT_CARD' | 'PIX' | 'BOLETO';
+    postalCode?: string;
+    addressNumber?: string;
+    phone?: string;
 }
 
 const getAsaasUrl = (environment: string) => {
@@ -49,6 +53,10 @@ serve(async (req) => {
             payerPhone,
             installments,
             cardData,
+            billingType = "CREDIT_CARD",
+            postalCode,
+            addressNumber,
+            phone, // phone from payload if provided
         } = body;
 
         // 1. Fetch Product and Asaas Account
@@ -100,39 +108,45 @@ serve(async (req) => {
         let endpoint = "/payments";
         let payload: any = {
             customer: customerId,
-            billingType: "CREDIT_CARD",
+            billingType: billingType,
             value: product.price / 100,
             dueDate: new Date().toISOString().split('T')[0],
-            creditCard: {
+        };
+
+        if (billingType === "CREDIT_CARD") {
+            if (!cardData) throw new Error("Card Data is required for Credit Card payments");
+
+            payload.creditCard = {
                 holderName: cardData.cardholderName,
                 number: cardData.cardNumber,
                 expiryMonth: cardData.expirationMonth,
                 expiryYear: cardData.expirationYear,
                 ccv: cardData.securityCode,
-            },
-            creditCardHolderInfo: {
+            };
+
+            payload.creditCardHolderInfo = {
                 name: payerName,
                 email: payerEmail,
                 cpfCnpj: payerCpfCnpj,
-                postalCode: "12345678", // Mandatory but often ignored in sandbox
-                addressNumber: "123",
-                phone: payerPhone || "11999999999",
-            }
-        };
+                postalCode: postalCode || "00000000",
+                addressNumber: addressNumber || "SN",
+                phone: phone || payerPhone || "11999999999",
+            };
+        }
 
-        if (product.subscription_cycle) {
+        if (product.subscription_cycle && billingType === "CREDIT_CARD") {
             endpoint = "/subscriptions";
             payload.cycle = product.subscription_cycle;
             payload.nextDueDate = payload.dueDate;
-            delete payload.dueDate; // Subscriptions use nextDueDate
+            delete payload.dueDate;
             delete payload.installmentCount;
             delete payload.installmentValue;
         } else {
-            // One-time payment
-            if (installments && installments > 1) {
+            // One-time payment (Card or PIX)
+            if (billingType === "CREDIT_CARD" && installments && installments > 1) {
                 payload.installmentCount = installments;
                 payload.installmentValue = payload.value / installments;
-                delete payload.value; // Asaas requires installmentValue + installmentCount OR value (for single)
+                delete payload.value;
             }
         }
 
@@ -178,12 +192,30 @@ serve(async (req) => {
 
         if (saveError) console.error("Error saving payment to DB:", saveError);
 
+        // Fetch PIX QR Code if applicable
+        let qrCodeData = null;
+        if (billingType === 'PIX' && paymentData.id) {
+            // Asaas usually returns pending status. We need to get the QR Code.
+            // Sometimes it's in the response, sometimes we need to call /payments/{id}/pixQrCode
+            try {
+                const qrRes = await fetch(`${baseUrl}/payments/${paymentData.id}/pixQrCode`, {
+                    method: "GET",
+                    headers: { "access_token": apiKey },
+                });
+                qrCodeData = await qrRes.json();
+            } catch (err) {
+                console.error("Error fetching PIX QR Code:", err);
+            }
+        }
+
         return new Response(
             JSON.stringify({
                 success: true,
                 paymentId: savedPayment?.id,
                 externalId: paymentData.id,
                 status: paymentData.status,
+                qrCode: qrCodeData?.payload, // Copy-paste string
+                qrCodeBase64: qrCodeData?.encodedImage, // Base64 image
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

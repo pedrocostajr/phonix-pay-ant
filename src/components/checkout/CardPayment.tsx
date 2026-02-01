@@ -67,6 +67,9 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
   const [cvv, setCvv] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
+  const [phone, setPhone] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
   const [installments, setInstallments] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -197,6 +200,19 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
     return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9, 11)}`;
   };
 
+  const formatPhone = (value: string) => {
+    const v = value.replace(/\D/g, "");
+    if (v.length <= 2) return v;
+    if (v.length <= 7) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
+    return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7, 11)}`;
+  };
+
+  const formatCEP = (value: string) => {
+    const v = value.replace(/\D/g, "");
+    if (v.length <= 5) return v;
+    return `${v.slice(0, 5)}-${v.slice(5, 8)}`;
+  };
+
   const calculateInstallmentWithInterest = (principal: number, months: number) => {
     if (months === 1) return { installment: principal, total: principal };
 
@@ -309,6 +325,9 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
             payerName: cardName,
             payerCpfCnpj: cpf.replace(/\D/g, ""),
             installments: installments, // Only used if not subscription
+            postalCode: postalCode.replace(/\D/g, ""),
+            addressNumber: addressNumber,
+            phone: phone.replace(/\D/g, ""),
             cardData: {
               cardNumber: cardNumberClean,
               cardholderName: cardName,
@@ -440,6 +459,47 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
             maxLength={14}
             required
           />
+        </div>
+
+        {/* Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="card-phone">Telefone / WhatsApp *</Label>
+          <Input
+            id="card-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
+            placeholder="(11) 99999-9999"
+            maxLength={15}
+            required
+          />
+        </div>
+
+        {/* Address Info (Required for Asaas) */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-2 space-y-2">
+            <Label htmlFor="card-cep">CEP *</Label>
+            <Input
+              id="card-cep"
+              type="text"
+              value={postalCode}
+              onChange={(e) => setPostalCode(formatCEP(e.target.value))}
+              placeholder="00000-000"
+              maxLength={9}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="card-number-address">Número *</Label>
+            <Input
+              id="card-number-address"
+              type="text"
+              value={addressNumber}
+              onChange={(e) => setAddressNumber(e.target.value)}
+              placeholder="123"
+              required
+            />
+          </div>
         </div>
 
         {/* Card Number */}
