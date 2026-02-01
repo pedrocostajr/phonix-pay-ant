@@ -4,9 +4,10 @@ import { LogOut, Users, CreditCard, Package, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
+import { AsaasManager } from "@/components/admin/AsaasManager";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 
-type Tab = "products" | "mercadopago" | "team";
+type Tab = "products" | "mercadopago" | "asaas" | "team";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ export default function Admin() {
   const tabs = [
     { id: "products" as Tab, label: "Produtos", icon: Package },
     { id: "mercadopago" as Tab, label: "Mercado Pago", icon: CreditCard },
+    { id: "asaas" as Tab, label: "Asaas", icon: Building2 },
     { id: "team" as Tab, label: "Equipe", icon: Users },
   ];
 
@@ -84,11 +86,10 @@ export default function Admin() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${activeTab === tab.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-foreground hover:bg-secondary/80"
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -99,6 +100,7 @@ export default function Admin() {
         {/* Content */}
         {activeTab === "products" && <ProductsManager />}
         {activeTab === "mercadopago" && <MercadoPagoAccounts />}
+        {activeTab === "asaas" && <AsaasManager />}
         {activeTab === "team" && <TeamManagement isAdmin={role === "admin"} />}
       </div>
     </div>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 interface CardPaymentProps {
   config: ProductConfig;
   mercadoPagoAccountId?: string | null;
+  asaasAccountId?: string | null;
 }
 
 // Mercado Pago public key - will be fetched from the MP account
@@ -59,7 +60,7 @@ interface PayerCost {
   recommended_message: string;
 }
 
-export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) {
+export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: CardPaymentProps) {
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -273,7 +274,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
       return;
     }
 
-    if (!mercadoPagoAccountId) {
+    if (!mercadoPagoAccountId && !asaasAccountId) {
       setError("Este produto não está configurado para receber pagamentos");
       return;
     }
@@ -299,7 +300,34 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
     setError(null);
 
     try {
-      // Send card data directly to edge function which handles tokenization server-side
+      // Asaas Payment Flow
+      if (config.paymentProvider === 'asaas') {
+        const { data, error: fnError } = await supabase.functions.invoke("create-asaas-payment", {
+          body: {
+            productId: config.id,
+            payerEmail: email,
+            payerName: cardName,
+            payerCpfCnpj: cpf.replace(/\D/g, ""),
+            installments: installments, // Only used if not subscription
+            cardData: {
+              cardNumber: cardNumberClean,
+              cardholderName: cardName,
+              expirationMonth: month,
+              expirationYear: "20" + year,
+              securityCode: cvv,
+            },
+          },
+        });
+
+        if (fnError) throw new Error(fnError.message);
+        if (data.error) throw new Error(data.details || data.error);
+
+        // Success for Asaas
+        window.location.href = `/success?payment=${data.paymentId}`;
+        return;
+      }
+
+      // Mercado Pago Payment Flow
       const { data, error: fnError } = await supabase.functions.invoke("create-card-payment", {
         body: {
           productId: config.id,
@@ -536,7 +564,7 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isProcessing || !mercadoPagoAccountId}
+          disabled={isProcessing || (!mercadoPagoAccountId && !asaasAccountId)}
           className="phoenix-btn phoenix-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70"
           style={{
             background: `linear-gradient(135deg, hsl(${config.buttonGradientStart}) 0%, hsl(${config.buttonGradientEnd}) 100%)`,
@@ -555,9 +583,9 @@ export function CardPayment({ config, mercadoPagoAccountId }: CardPaymentProps) 
           )}
         </button>
 
-        {!mercadoPagoAccountId && (
+        {!mercadoPagoAccountId && !asaasAccountId && (
           <p className="text-xs text-center text-destructive">
-            ⚠️ Este produto não possui conta Mercado Pago configurada
+            ⚠️ Este produto não possui conta de pagamento configurada
           </p>
         )}
 

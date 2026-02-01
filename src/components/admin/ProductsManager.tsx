@@ -34,6 +34,14 @@ interface Product {
   email_subject: string | null;
   email_body: string | null;
   mercado_pago_account?: MercadoPagoAccount | null;
+  asaas_account_id: string | null;
+  payment_provider: 'mercadopago' | 'asaas';
+  subscription_cycle: string | null;
+}
+
+interface AsaasAccount {
+  id: string;
+  name: string;
 }
 
 const COLOR_PRESETS = [
@@ -48,6 +56,7 @@ const COLOR_PRESETS = [
 export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [mpAccounts, setMpAccounts] = useState<MercadoPagoAccount[]>([]);
+  const [asaasAccounts, setAsaasAccounts] = useState<AsaasAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -78,19 +87,26 @@ export function ProductsManager() {
     email_body: "",
     is_active: true,
     installment_type: "buyer",
+    payment_provider: "mercadopago",
+    asaas_account_id: "",
+    subscription_cycle: "",
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      const [productsRes, accountsRes] = await Promise.all([
+      const [productsRes, accountsRes, asaasAccountsRes] = await Promise.all([
         supabase
           .from("products")
           .select("*, mercado_pago_accounts(id, name)")
           .order("created_at", { ascending: false }),
         supabase
           .from("mercado_pago_accounts")
+          .select("id, name")
+          .order("name"),
+        supabase
+          .from("asaas_accounts")
           .select("id, name")
           .order("name"),
       ]);
@@ -120,6 +136,12 @@ export function ProductsManager() {
         });
       } else {
         setMpAccounts(accountsRes.data || []);
+      }
+
+      if (asaasAccountsRes.error) {
+        console.error("Error fetching Asaas accounts:", asaasAccountsRes.error);
+      } else {
+        setAsaasAccounts(asaasAccountsRes.data || []);
       }
     } catch (error: any) {
       console.error("Critical error in fetchData:", error);
@@ -160,7 +182,11 @@ export function ProductsManager() {
       email_subject: "",
       email_body: "",
       is_active: true,
+      is_active: true,
       installment_type: "buyer",
+      payment_provider: "mercadopago",
+      asaas_account_id: "",
+      subscription_cycle: "",
     });
     setEditingProduct(null);
     setSaveError(null);
@@ -189,7 +215,11 @@ export function ProductsManager() {
       email_subject: product.email_subject || "",
       email_body: product.email_body || "",
       is_active: product.is_active,
+      is_active: product.is_active,
       installment_type: (product as any).installment_type || "buyer",
+      payment_provider: (product as any).payment_provider || "mercadopago",
+      asaas_account_id: (product as any).asaas_account_id || "",
+      subscription_cycle: (product as any).subscription_cycle || "",
     });
     setEditingProduct(product);
     setShowForm(true);
@@ -262,7 +292,11 @@ export function ProductsManager() {
         email_subject: formData.email_subject?.trim() || null,
         email_body: formData.email_body?.trim() || null,
         is_active: formData.is_active,
+        is_active: formData.is_active,
         installment_type: formData.installment_type,
+        payment_provider: formData.payment_provider,
+        asaas_account_id: formData.asaas_account_id || null,
+        subscription_cycle: formData.subscription_cycle || null,
       };
 
       console.log("Reduced data payload:", productData);
@@ -699,10 +733,81 @@ export function ProductsManager() {
                 </option>
               ))}
             </select>
-            {mpAccounts.length === 0 && (
+            {mpAccounts.length === 0 && formData.payment_provider === 'mercadopago' && (
               <p className="text-xs text-destructive mt-1">
                 Adicione uma conta Mercado Pago primeiro
               </p>
+            )}
+          </div>
+
+          {/* Payment Provider Selection */}
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border space-y-4">
+            <h4 className="font-semibold text-sm">Provedor de Pagamento</h4>
+
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="payment_provider"
+                  value="mercadopago"
+                  checked={formData.payment_provider === "mercadopago"}
+                  onChange={(e) => setFormData({ ...formData, payment_provider: "mercadopago" })}
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Mercado Pago (Padrão)</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="payment_provider"
+                  value="asaas"
+                  checked={formData.payment_provider === "asaas"}
+                  onChange={(e) => setFormData({ ...formData, payment_provider: "asaas" })}
+                  className="w-4 h-4 text-primary"
+                />
+                <span>Asaas (Assinaturas)</span>
+              </label>
+            </div>
+
+            {/* Asaas Configuration */}
+            {formData.payment_provider === "asaas" && (
+              <div className="space-y-4 mt-4 pt-4 border-t border-border/50 animate-in fade-in slide-in-from-top-2">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Conta Asaas</label>
+                  <select
+                    value={formData.asaas_account_id}
+                    onChange={(e) => setFormData({ ...formData, asaas_account_id: e.target.value })}
+                    className="admin-input"
+                    required={formData.payment_provider === "asaas"}
+                  >
+                    <option value="">Selecione uma conta Asaas</option>
+                    {asaasAccounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Tipo de Venda</label>
+                  <select
+                    value={formData.subscription_cycle || ""}
+                    onChange={(e) => setFormData({ ...formData, subscription_cycle: e.target.value })}
+                    className="admin-input"
+                  >
+                    <option value="">Venda Única (Cobrança Avulsa)</option>
+                    <option value="MONTHLY">Assinatura Mensal</option>
+                    <option value="QUARTERLY">Assinatura Trimestral</option>
+                    <option value="SEMIANNUALLY">Assinatura Semestral</option>
+                    <option value="YEARLY">Assinatura Anual</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Se selecionar uma assinatura, o produto cobrará automaticamente com essa frequência.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 

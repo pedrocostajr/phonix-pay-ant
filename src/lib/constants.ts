@@ -15,6 +15,9 @@ export interface ProductConfig {
   pixDiscount: number; // percentual de desconto no PIX
   bannerUrl?: string; // URL do banner opcional
   bottomBannerUrl?: string; // URL do banner opcional
+  asaasAccountId?: string | null;
+  paymentProvider?: 'mercadopago' | 'asaas';
+  subscriptionCycle?: string | null;
 }
 
 export const PRODUCT_CONFIG: ProductConfig = {
@@ -27,6 +30,7 @@ export const PRODUCT_CONFIG: ProductConfig = {
   buttonGradientStart: "142 76% 36%",
   buttonGradientEnd: "142 76% 28%",
   pixDiscount: 10, // 10% de desconto no PIX
+  paymentProvider: "mercadopago"
 };
 
 // Formatador de moeda brasileira

@@ -16,6 +16,9 @@ interface DbProduct {
   button_gradient_start: string;
   button_gradient_end: string;
   mercado_pago_account_id: string | null;
+  asaas_account_id: string | null;
+  payment_provider: 'mercadopago' | 'asaas';
+  subscription_cycle: string | null;
   banner_url: string | null;
   bottom_banner_url: string | null;
   facebook_pixel_id: string | null;
@@ -28,6 +31,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(!!productId);
   const [product, setProduct] = useState<ProductConfig & { facebookPixelId?: string } | null>(null);
   const [mpAccountId, setMpAccountId] = useState<string | null>(null);
+  const [asaasAccountId, setAsaasAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!productId) {
@@ -66,9 +70,13 @@ export default function Checkout() {
         bannerUrl: dbProduct.banner_url || undefined,
         bottomBannerUrl: dbProduct.bottom_banner_url || undefined,
         facebookPixelId: dbProduct.facebook_pixel_id || undefined,
+        asaasAccountId: dbProduct.asaas_account_id || undefined,
+        paymentProvider: dbProduct.payment_provider || "mercadopago",
+        subscriptionCycle: dbProduct.subscription_cycle || undefined,
       });
 
       setMpAccountId(dbProduct.mercado_pago_account_id);
+      setAsaasAccountId(dbProduct.asaas_account_id);
       setLoading(false);
     };
 
@@ -155,7 +163,7 @@ export default function Checkout() {
 
       {/* Main Content */}
       <main className="container max-w-md mx-auto px-4 py-8 pb-32 md:pb-8">
-        <CheckoutCard config={product} mercadoPagoAccountId={mpAccountId} />
+        <CheckoutCard config={product} mercadoPagoAccountId={mpAccountId} asaasAccountId={asaasAccountId} />
       </main>
 
       {/* Mobile Sticky CTA */}
