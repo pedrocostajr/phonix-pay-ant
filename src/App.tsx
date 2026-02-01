@@ -12,26 +12,34 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Checkout />} />
-          <Route path="/checkout/:productId" element={<Checkout />} />
-          <Route path="/success" element={<Success />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* Suporte para hash routing legado */}
-          <Route path="/#/admin" element={<Navigate to="/admin" replace />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary name="App">
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Checkout />} />
+            <Route path="/checkout/:productId" element={<Checkout />} />
+            <Route path="/success" element={<Success />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/admin" element={
+              <ErrorBoundary name="Rota Admin">
+                <Admin />
+              </ErrorBoundary>
+            } />
+            {/* Suporte para hash routing legado */}
+            <Route path="/#/admin" element={<Navigate to="/admin" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
