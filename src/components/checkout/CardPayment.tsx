@@ -556,15 +556,14 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
         {/* Installments */}
         <div className="space-y-2">
           <Label htmlFor="card-installments">
-            {config.subscriptionCycle ? "Ciclo da Assinatura" : "Parcelas"}
+            {config.subscriptionCycle && config.subscriptionCycle !== "YEARLY" ? "Ciclo da Assinatura" : "Parcelas"}
           </Label>
 
-          {config.subscriptionCycle ? (
+          {config.subscriptionCycle && config.subscriptionCycle !== "YEARLY" ? (
             <div className="flex h-10 w-full items-center rounded-md border border-input bg-secondary/50 px-3 text-sm text-muted-foreground">
               {config.subscriptionCycle === "MONTHLY" && "Assinatura Mensal"}
               {config.subscriptionCycle === "QUARTERLY" && "Assinatura Trimestral"}
               {config.subscriptionCycle === "SEMIANNUALLY" && "Assinatura Semestral"}
-              {config.subscriptionCycle === "YEARLY" && "Assinatura Anual"}
               {!["MONTHLY", "QUARTERLY", "SEMIANNUALLY", "YEARLY"].includes(config.subscriptionCycle) &&
                 config.subscriptionCycle}
             </div>

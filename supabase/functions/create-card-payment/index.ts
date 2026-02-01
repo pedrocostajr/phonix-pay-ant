@@ -174,7 +174,12 @@ serve(async (req) => {
     }
 
     // --- SUBSCRIPTION FLOW ---
-    if (subscriptionCycle) {
+    // If it's a subscription cycle BUT installments > 1, we treat it as a standard one-time payment
+    // giving the user 1 year of access (or whatever the cycle is), but processed as a standard credit card transaction
+    // so that installments can be applied. MP Subscriptions DO NOT support installments on the recurring value.
+    const isInstallmentSubscription = subscriptionCycle && installments > 1;
+
+    if (subscriptionCycle && !isInstallmentSubscription) {
       console.log("Processing subscription:", subscriptionCycle);
 
       // 1. Determine frequency
