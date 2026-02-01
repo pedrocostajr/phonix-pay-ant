@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Package, Plus, Trash2, Loader2, Edit2, Eye, Link2 } from "lucide-react";
+import { Package, Plus, Trash2, Loader2, Edit2, Eye, Link2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { formatBRL } from "@/lib/constants";
@@ -230,6 +230,42 @@ export function ProductsManager() {
       button_gradient_start: preset.value,
       button_gradient_end: preset.gradient,
     });
+  };
+
+  const handleDuplicateProduct = async (product: Product) => {
+    try {
+      setLoading(true);
+      const { id, created_at, ...productData } = product;
+
+      const newProduct = {
+        ...productData,
+        name: `${productData.name} (Cópia)`,
+        mercado_pago_account_id: productData.mercado_pago_account_id || null, // Ensure explicit null
+        asaas_account_id: (productData as any).asaas_account_id || null, // Ensure explicit null
+      };
+
+      const { error } = await supabase
+        .from("products")
+        .insert(newProduct);
+
+      if (error) throw error;
+
+      toast({
+        title: "Produto duplicado",
+        description: "O produto foi duplicado com sucesso.",
+      });
+
+      await fetchData();
+    } catch (error: any) {
+      console.error("Error duplicating product:", error);
+      toast({
+        title: "Erro ao duplicar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -985,6 +1021,13 @@ export function ProductsManager() {
                     title="Copiar link do checkout"
                   >
                     <Link2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDuplicateProduct(product)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    title="Duplicar produto"
+                  >
+                    <Copy className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => toggleActive(product)}
