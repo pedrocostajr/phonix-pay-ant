@@ -180,15 +180,15 @@ export function SubscriptionsManager() {
                                     return (
                                         <tr key={sub.id || Math.random()} className="group hover:bg-secondary/20 transition-colors">
                                             <td className="py-4 pl-4">
-                                                <div className="font-medium">{sub.payer_name || "Sem Nome"}</div>
+                                                <div className="font-medium text-white">{sub.payer_name || "Sem Nome"}</div>
                                                 <div className="text-xs text-muted-foreground">
                                                     {sub.payer_email || ""}
                                                 </div>
                                             </td>
-                                            <td className="py-4 text-sm">{displayProductName || "Sem produto"}</td>
+                                            <td className="py-4 text-sm text-white">{displayProductName || "Sem produto"}</td>
                                             <td className="py-4 text-sm">
                                                 <div className="flex flex-col">
-                                                    <span>{dateDisplay}</span>
+                                                    <span className="text-white">{dateDisplay}</span>
                                                     <span className={`text-xs ${isExpired ? "text-red-500" : isExpiring ? "text-amber-500" : "text-muted-foreground"}`}>
                                                         {isExpired ? "Expirado" : `${daysLeft} dias restantes`}
                                                     </span>
