@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Users, CreditCard, Package, Loader2, Building2 } from "lucide-react";
+import { LogOut, Users, CreditCard, Package, Loader2, Building2, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
