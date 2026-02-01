@@ -545,7 +545,9 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
           style={{ backgroundColor: `hsl(${config.accentColor} / 0.1)` }}
         >
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total com Juros</span>
+            <span className="text-sm font-medium">
+              {config.subscriptionCycle ? "Valor da Cobrança" : "Total com Juros"}
+            </span>
             <span
               className="text-xl font-black"
               style={{ color: `hsl(${config.accentColor})` }}
