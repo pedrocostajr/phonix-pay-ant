@@ -49,7 +49,6 @@ serve(async (req) => {
       issuerId,
       identificationNumber,
       identificationType,
-      identificationType,
       cardData,
       subscriptionCycle,
     } = body;
