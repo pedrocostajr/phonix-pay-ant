@@ -1,4 +1,4 @@
-project_id = "gloocdxfsnsvxudeysnt"
+project_id = "datzmkiygocblpbebikw"
 
 [functions.create-pix-payment]
 verify_jwt = false
@@ -10,6 +10,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-card-payment]
+verify_jwt = false
+
+[functions.create-asaas-payment]
 verify_jwt = false
 
 [functions.create-team-member]
