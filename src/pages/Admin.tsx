@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Users, CreditCard, Package, Loader2 } from "lucide-react";
+import { LogOut, Users, CreditCard, Package, Loader2, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
@@ -87,8 +87,8 @@ export default function Admin() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${activeTab === tab.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground hover:bg-secondary/80"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-foreground hover:bg-secondary/80"
                 }`}
             >
               <tab.icon className="w-4 h-4" />
