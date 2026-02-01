@@ -461,46 +461,50 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
           />
         </div>
 
-        {/* Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="card-phone">Telefone / WhatsApp *</Label>
-          <Input
-            id="card-phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(formatPhone(e.target.value))}
-            placeholder="(11) 99999-9999"
-            maxLength={15}
-            required
-          />
-        </div>
-
-        {/* Address Info (Required for Asaas) */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="card-cep">CEP *</Label>
-            <Input
-              id="card-cep"
-              type="text"
-              value={postalCode}
-              onChange={(e) => setPostalCode(formatCEP(e.target.value))}
-              placeholder="00000-000"
-              maxLength={9}
-              required
-            />
-          </div>
+        {/* Phone - Only for Asaas */}
+        {config.paymentProvider === 'asaas' && (
           <div className="space-y-2">
-            <Label htmlFor="card-number-address">Número *</Label>
+            <Label htmlFor="card-phone">Telefone / WhatsApp *</Label>
             <Input
-              id="card-number-address"
-              type="text"
-              value={addressNumber}
-              onChange={(e) => setAddressNumber(e.target.value)}
-              placeholder="123"
+              id="card-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              placeholder="(11) 99999-9999"
+              maxLength={15}
               required
             />
           </div>
-        </div>
+        )}
+
+        {/* Address Info - Only for Asaas */}
+        {config.paymentProvider === 'asaas' && (
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="card-cep">CEP *</Label>
+              <Input
+                id="card-cep"
+                type="text"
+                value={postalCode}
+                onChange={(e) => setPostalCode(formatCEP(e.target.value))}
+                placeholder="00000-000"
+                maxLength={9}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="card-number-address">Número *</Label>
+              <Input
+                id="card-number-address"
+                type="text"
+                value={addressNumber}
+                onChange={(e) => setAddressNumber(e.target.value)}
+                placeholder="123"
+                required
+              />
+            </div>
+          </div>
+        )}
 
         {/* Card Number */}
         <div className="space-y-2">
