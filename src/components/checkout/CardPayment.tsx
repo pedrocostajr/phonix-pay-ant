@@ -630,7 +630,10 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
         >
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">
-              {config.subscriptionCycle ? "Valor da Cobrança" : "Total com Juros"}
+              {config.subscriptionCycle
+                ? "Valor da Cobrança"
+                : config.installmentType === 'seller' ? "Total a Pagar" : "Total com Juros"
+              }
             </span>
             <span
               className="text-xl font-black"
