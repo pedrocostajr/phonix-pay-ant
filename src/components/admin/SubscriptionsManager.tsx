@@ -53,7 +53,7 @@ export function SubscriptionsManager() {
                 .order("expires_at", { ascending: true }); // Expiring soonest first
 
             if (error) throw error;
-            setSubscriptions(data as unknown as Subscription[]);
+            setSubscriptions((data || []) as unknown as Subscription[]);
         } catch (error) {
             console.error("Error fetching subscriptions:", error);
         } finally {
@@ -76,14 +76,14 @@ export function SubscriptionsManager() {
     );
 
     const getWhatsAppLink = (sub: Subscription) => {
-        const phone = ""; // We don't have phone in payments table yet! We might need to ask user to add it or fetch from other source if available. 
-        // Fallback: Just open whatsapp with text, user selects contact
+        const phone = "";
 
-        // Construct checkout link
-        // Assuming checkout url is /checkout/:productId
         const checkoutLink = `${window.location.origin}/checkout/${sub.product_id}`;
 
-        const message = `Olá ${sub.payer_name}, sua assinatura do pacote ${sub.products.name} vence em ${format(new Date(sub.expires_at), "dd/MM/yyyy")}. Renove agora e garanta a continuidade do seu acesso: ${checkoutLink}`;
+        // Safe access to product name
+        const productName = sub.products?.name || "Produto";
+
+        const message = `Olá ${sub.payer_name}, sua assinatura do pacote ${productName} vence em ${format(new Date(sub.expires_at), "dd/MM/yyyy")}. Renove agora e garanta a continuidade do seu acesso: ${checkoutLink}`;
 
         return `https://wa.me/?text=${encodeURIComponent(message)}`;
     };
