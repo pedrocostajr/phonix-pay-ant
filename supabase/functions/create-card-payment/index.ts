@@ -25,6 +25,7 @@ interface CardPaymentRequest {
   identificationNumber?: string;
   identificationType?: string;
   cardData?: CardData;
+  subscriptionCycle?: string;
 }
 
 serve(async (req) => {
@@ -48,7 +49,9 @@ serve(async (req) => {
       issuerId,
       identificationNumber,
       identificationType,
+      identificationType,
       cardData,
+      subscriptionCycle,
     } = body;
 
     if (!productId || !payerEmail) {
@@ -171,7 +174,138 @@ serve(async (req) => {
       );
     }
 
-    // 2. Create Payment with Token
+    // --- SUBSCRIPTION FLOW ---
+    if (subscriptionCycle) {
+      console.log("Processing subscription:", subscriptionCycle);
+
+      // 1. Determine frequency
+      let frequency = 1;
+      let frequencyType = "months";
+
+      switch (subscriptionCycle) {
+        case "MONTHLY": frequency = 1; break;
+        case "QUARTERLY": frequency = 3; break;
+        case "SEMIANNUALLY": frequency = 6; break;
+        case "YEARLY": frequency = 12; break;
+        default: frequency = 1;
+      }
+
+      // 2. Create Preapproval Plan
+      const planBody = {
+        reason: product.name,
+        auto_recurring: {
+          frequency,
+          frequency_type: frequencyType,
+          transaction_amount: priceInReais,
+          currency_id: "BRL"
+        },
+        back_url: "https://google.com", // Placeholder
+        status: "active"
+      };
+
+      console.log("Creating MP Plan:", JSON.stringify(planBody));
+
+      const planResponse = await fetch("https://api.mercadopago.com/preapproval_plan", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${mpAccount.access_token}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": crypto.randomUUID(), // New key for plan
+        },
+        body: JSON.stringify(planBody),
+      });
+
+      const planData = await planResponse.json();
+
+      if (!planResponse.ok) {
+        console.error("Plan creation error:", planData);
+        return new Response(
+          JSON.stringify({
+            error: "Failed to create subscription plan",
+            details: planData.message || "Unknown MP Error",
+            statusDetail: planData.error || "unknown"
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // 3. Create Subscription (Preapproval)
+      const subscriptionBody = {
+        preapproval_plan_id: planData.id,
+        card_token_id: tokenData.id,
+        payer_email: payerEmail,
+        status: "authorized",
+        reason: product.name,
+        auto_recurring: {
+          frequency,
+          frequency_type: frequencyType,
+          transaction_amount: priceInReais,
+          currency_id: "BRL"
+        }
+      };
+
+      console.log("Creating Subscription:", JSON.stringify(subscriptionBody));
+
+      const subResponse = await fetch("https://api.mercadopago.com/preapproval", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${mpAccount.access_token}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": crypto.randomUUID(),
+        },
+        body: JSON.stringify(subscriptionBody),
+      });
+
+      const subData = await subResponse.json();
+
+      if (!subResponse.ok) {
+        console.error("Subscription creation error:", subData);
+        return new Response(
+          JSON.stringify({
+            error: "Failed to create subscription",
+            details: subData.message || "Unknown MP Error",
+            statusDetail: subData.error || "unknown"
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Save to DB
+      const { data: payment, error: paymentError } = await supabase
+        .from("payments")
+        .insert({
+          product_id: productId,
+          mercado_pago_account_id: mpAccount.id,
+          external_id: String(subData.id),
+          status: subData.status === "authorized" ? "approved" : "pending",
+          amount: product.price,
+          payer_email: payerEmail,
+          payer_name: payerName,
+          payment_method: "credit_card_subscription",
+          paid_at: subData.status === "authorized" ? new Date().toISOString() : null,
+        })
+        .select()
+        .single();
+
+      if (paymentError) console.error("DB Save error:", paymentError);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          paymentId: payment?.id || subData.id,
+          externalId: String(subData.id),
+          status: subData.status === "authorized" ? "approved" : "pending",
+          approved: subData.status === "authorized",
+          amount: product.price,
+          installments: 1,
+          isSubscription: true
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // --- END SUBSCRIPTION FLOW ---
+
+    // 2. Create Payment with Token (Standard One-Time)
     const paymentBody: Record<string, unknown> = {
       transaction_amount: priceInReais,
       description: product.name,

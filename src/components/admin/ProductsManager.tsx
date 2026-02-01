@@ -830,26 +830,32 @@ export function ProductsManager() {
                     ))}
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tipo de Venda</label>
-                  <select
-                    value={formData.subscription_cycle || ""}
-                    onChange={(e) => setFormData({ ...formData, subscription_cycle: e.target.value })}
-                    className="admin-input"
-                  >
-                    <option value="">Venda Única (Cobrança Avulsa)</option>
-                    <option value="MONTHLY">Assinatura Mensal</option>
-                    <option value="QUARTERLY">Assinatura Trimestral</option>
-                    <option value="SEMIANNUALLY">Assinatura Semestral</option>
-                    <option value="YEARLY">Assinatura Anual</option>
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Se selecionar uma assinatura, o produto cobrará automaticamente com essa frequência.
-                  </p>
-                </div>
               </div>
             )}
+
+            {/* Subscription Configuration (Available for both) */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <label className="block text-sm font-medium mb-2">Tipo de Venda (Assinatura)</label>
+              <select
+                value={formData.subscription_cycle || ""}
+                onChange={(e) => setFormData({ ...formData, subscription_cycle: e.target.value })}
+                className="admin-input"
+              >
+                <option value="">Venda Única (Cobrança Avulsa)</option>
+                <option value="MONTHLY">Assinatura Mensal</option>
+                <option value="QUARTERLY">Assinatura Trimestral</option>
+                <option value="SEMIANNUALLY">Assinatura Semestral</option>
+                <option value="YEARLY">Assinatura Anual</option>
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Se selecionar uma assinatura, o produto cobrará automaticamente com essa frequência.
+                {formData.payment_provider === 'mercadopago' && (
+                  <span className="block text-primary mt-1">
+                    ℹ️ No Mercado Pago, isso criará um plano e uma assinatura automaticamente.
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
 
           {/* Installment Type Selection */}

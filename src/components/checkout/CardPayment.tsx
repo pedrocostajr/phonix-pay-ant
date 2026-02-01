@@ -357,6 +357,7 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
           issuerId: issuerId || undefined,
           identificationNumber: cpf.replace(/\D/g, ""),
           identificationType: "CPF",
+          subscriptionCycle: config.subscriptionCycle,
           // Send card data directly for server-side tokenization
           cardData: {
             cardNumber: cardNumberClean,
