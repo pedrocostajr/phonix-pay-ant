@@ -22,6 +22,7 @@ interface DbProduct {
   banner_url: string | null;
   bottom_banner_url: string | null;
   facebook_pixel_id: string | null;
+  installment_type: string | null;
   is_active: boolean;
 }
 
@@ -73,6 +74,7 @@ export default function Checkout() {
         asaasAccountId: dbProduct.asaas_account_id || undefined,
         paymentProvider: dbProduct.payment_provider || "mercadopago",
         subscriptionCycle: dbProduct.subscription_cycle || undefined,
+        installmentType: (dbProduct.installment_type as "buyer" | "seller") || "buyer",
       });
 
       setMpAccountId(dbProduct.mercado_pago_account_id);
