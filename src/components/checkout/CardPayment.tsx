@@ -594,12 +594,22 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
                 // Fallback while loading or if no bin
                 Array.from({ length: 12 }, (_, i) => i + 1)
                   .filter(n => config.price >= n * 500 || n === 1)
-                  .map((n) => (
-                    <option key={n} value={n}>
-                      {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
-                      {n > 1 ? ` (Total: ${getTotalPrice(n)})` : ""}
-                    </option>
-                  ))
+                  .map((n) => {
+                    const isSellerType = config.installmentType === 'seller';
+                    const price = isSellerType
+                      ? formatBRL(Math.round(config.price / n))
+                      : getInstallmentPrice(n);
+
+                    const suffix = isSellerType && n > 1 ? " sem juros" : "";
+                    const totalText = !isSellerType && n > 1 ? ` (Total: ${getTotalPrice(n)})` : "";
+
+                    return (
+                      <option key={n} value={n}>
+                        {n}x de {price}{suffix} {n === 1 ? "à vista" : ""}
+                        {totalText}
+                      </option>
+                    )
+                  })
               )}
             </select>
           )}

@@ -240,7 +240,8 @@ export function ProductsManager() {
       const {
         id,
         created_at,
-        mercado_pago_account, // Joined object
+        mercado_pago_account, // Joined object (singular)
+        mercado_pago_accounts, // Joined object (plural - from Supabase response)
         ...productData
       } = product as any;
 
