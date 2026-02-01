@@ -490,45 +490,59 @@ export function CardPayment({ config, mercadoPagoAccountId, asaasAccountId }: Ca
 
         {/* Installments */}
         <div className="space-y-2">
-          <Label htmlFor="card-installments">Parcelas</Label>
-          <select
-            id="card-installments"
-            value={installments}
-            onChange={(e) => setInstallments(Number(e.target.value))}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-          >
-            {payerCosts.length > 0 ? (
-              payerCosts.map((cost) => {
-                const isSellerType = config.installmentType === 'seller';
-                const installmentPrice = isSellerType
-                  ? formatBRL(Math.round(config.price / cost.installments))
-                  : formatBRL(Math.round(cost.installment_amount * 100));
+          <Label htmlFor="card-installments">
+            {config.subscriptionCycle ? "Ciclo da Assinatura" : "Parcelas"}
+          </Label>
 
-                const totalText = !isSellerType && cost.total_amount > (config.price / 100)
-                  ? ` (Total: ${formatBRL(Math.round(cost.total_amount * 100))})`
-                  : "";
+          {config.subscriptionCycle ? (
+            <div className="flex h-10 w-full items-center rounded-md border border-input bg-secondary/50 px-3 text-sm text-muted-foreground">
+              {config.subscriptionCycle === "MONTHLY" && "Assinatura Mensal"}
+              {config.subscriptionCycle === "QUARTERLY" && "Assinatura Trimestral"}
+              {config.subscriptionCycle === "SEMIANNUALLY" && "Assinatura Semestral"}
+              {config.subscriptionCycle === "YEARLY" && "Assinatura Anual"}
+              {!["MONTHLY", "QUARTERLY", "SEMIANNUALLY", "YEARLY"].includes(config.subscriptionCycle) &&
+                config.subscriptionCycle}
+            </div>
+          ) : (
+            <select
+              id="card-installments"
+              value={installments}
+              onChange={(e) => setInstallments(Number(e.target.value))}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            >
+              {payerCosts.length > 0 ? (
+                payerCosts.map((cost) => {
+                  const isSellerType = config.installmentType === 'seller';
+                  const installmentPrice = isSellerType
+                    ? formatBRL(Math.round(config.price / cost.installments))
+                    : formatBRL(Math.round(cost.installment_amount * 100));
 
-                const suffix = isSellerType && cost.installments > 1 ? " sem juros" : "";
+                  const totalText = !isSellerType && cost.total_amount > (config.price / 100)
+                    ? ` (Total: ${formatBRL(Math.round(cost.total_amount * 100))})`
+                    : "";
 
-                return (
-                  <option key={cost.installments} value={cost.installments}>
-                    {cost.installments}x de {installmentPrice}{suffix} {cost.installments === 1 ? "à vista" : ""}
-                    {totalText}
-                  </option>
-                );
-              })
-            ) : (
-              // Fallback while loading or if no bin
-              Array.from({ length: 12 }, (_, i) => i + 1)
-                .filter(n => config.price >= n * 500 || n === 1)
-                .map((n) => (
-                  <option key={n} value={n}>
-                    {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
-                    {n > 1 ? ` (Total: ${getTotalPrice(n)})` : ""}
-                  </option>
-                ))
-            )}
-          </select>
+                  const suffix = isSellerType && cost.installments > 1 ? " sem juros" : "";
+
+                  return (
+                    <option key={cost.installments} value={cost.installments}>
+                      {cost.installments}x de {installmentPrice}{suffix} {cost.installments === 1 ? "à vista" : ""}
+                      {totalText}
+                    </option>
+                  );
+                })
+              ) : (
+                // Fallback while loading or if no bin
+                Array.from({ length: 12 }, (_, i) => i + 1)
+                  .filter(n => config.price >= n * 500 || n === 1)
+                  .map((n) => (
+                    <option key={n} value={n}>
+                      {n}x de {getInstallmentPrice(n)} {n === 1 ? "à vista" : ""}
+                      {n > 1 ? ` (Total: ${getTotalPrice(n)})` : ""}
+                    </option>
+                  ))
+              )}
+            </select>
+          )}
         </div>
 
         {/* Error */}
