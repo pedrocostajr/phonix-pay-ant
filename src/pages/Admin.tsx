@@ -5,9 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
 import { AsaasManager } from "@/components/admin/AsaasManager";
-import { ProductsManager } from "@/components/admin/ProductsManager";
+import { SubscriptionsManager } from "@/components/admin/SubscriptionsManager";
 
-type Tab = "products" | "mercadopago" | "asaas" | "team";
+type Tab = "products" | "mercadopago" | "asaas" | "team" | "subscriptions";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -42,6 +42,7 @@ export default function Admin() {
 
   const tabs = [
     { id: "products" as Tab, label: "Produtos", icon: Package },
+    { id: "subscriptions" as Tab, label: "Assinaturas", icon: Calendar },
     { id: "mercadopago" as Tab, label: "Mercado Pago", icon: CreditCard },
     { id: "asaas" as Tab, label: "Asaas", icon: Building2 },
     { id: "team" as Tab, label: "Equipe", icon: Users },
@@ -99,6 +100,7 @@ export default function Admin() {
 
         {/* Content */}
         {activeTab === "products" && <ProductsManager />}
+        {activeTab === "subscriptions" && <SubscriptionsManager />}
         {activeTab === "mercadopago" && <MercadoPagoAccounts />}
         {activeTab === "asaas" && <AsaasManager />}
         {activeTab === "team" && <TeamManagement isAdmin={role === "admin"} />}

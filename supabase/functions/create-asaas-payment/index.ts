@@ -180,6 +180,25 @@ serve(async (req) => {
             );
         }
 
+        // Calculate expiration date if it's a subscription-like payment (e.g. Annual Installment)
+        let expiresAt = null;
+        if (product.subscription_cycle) {
+            const now = new Date();
+            if (product.subscription_cycle === "YEARLY") {
+                now.setFullYear(now.getFullYear() + 1);
+                expiresAt = now.toISOString();
+            } else if (product.subscription_cycle === "MONTHLY") {
+                now.setMonth(now.getMonth() + 1);
+                expiresAt = now.toISOString();
+            } else if (product.subscription_cycle === "QUARTERLY") {
+                now.setMonth(now.getMonth() + 3);
+                expiresAt = now.toISOString();
+            } else if (product.subscription_cycle === "SEMIANNUALLY") {
+                now.setMonth(now.getMonth() + 6);
+                expiresAt = now.toISOString();
+            }
+        }
+
         // Save to local DB
         const { data: savedPayment, error: saveError } = await supabase
             .from("payments")
@@ -191,6 +210,7 @@ serve(async (req) => {
                 payer_email: payerEmail,
                 payer_name: payerName,
                 payment_method: "credit_card", // or "asaas_subscription"
+                expires_at: expiresAt,
                 // asaas_account_id could be stored if we had a column, but mp_account_id is separate
             })
             .select()

@@ -361,6 +361,25 @@ serve(async (req) => {
 
     console.log("MP Response status:", mpData.status, "detail:", mpData.status_detail);
 
+    // Calculate expiration date if it's a subscription-like payment (e.g. Annual Installment)
+    let expiresAt = null;
+    if (subscriptionCycle) {
+      const now = new Date();
+      if (subscriptionCycle === "YEARLY") {
+        now.setFullYear(now.getFullYear() + 1);
+        expiresAt = now.toISOString();
+      } else if (subscriptionCycle === "MONTHLY") {
+        now.setMonth(now.getMonth() + 1);
+        expiresAt = now.toISOString();
+      } else if (subscriptionCycle === "QUARTERLY") {
+        now.setMonth(now.getMonth() + 3);
+        expiresAt = now.toISOString();
+      } else if (subscriptionCycle === "SEMIANNUALLY") {
+        now.setMonth(now.getMonth() + 6);
+        expiresAt = now.toISOString();
+      }
+    }
+
     // Save payment to database
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
@@ -374,6 +393,7 @@ serve(async (req) => {
         payer_name: payerName,
         payment_method: "credit_card",
         paid_at: mpData.status === "approved" ? new Date().toISOString() : null,
+        expires_at: expiresAt,
       })
       .select()
       .single();
