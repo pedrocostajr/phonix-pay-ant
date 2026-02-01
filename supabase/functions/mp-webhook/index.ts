@@ -34,15 +34,28 @@ serve(async (req) => {
 
       console.log(`Processing webhook for ${isSubscription ? "Subscription" : "Payment"} ID: ${entityId}`);
 
-      // Find the payment in our database
-      const { data: payment, error: findError } = await supabase
-        .from("payments")
-        .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body)")
-        .eq("external_id", String(entityId))
-        .maybeSingle();
+      console.log(`Processing webhook for ${isSubscription ? "Subscription" : "Payment"} ID: ${entityId}`);
 
-      if (findError || !payment) {
-        console.log("Payment/Subscription not found:", entityId);
+      // Retry loop to handle race conditions (webhook arriving before DB insert)
+      let payment = null;
+      for (let i = 0; i < 3; i++) {
+        const { data, error } = await supabase
+          .from("payments")
+          .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body)")
+          .eq("external_id", String(entityId))
+          .maybeSingle();
+
+        if (data) {
+          payment = data;
+          break;
+        }
+
+        console.log(`Attempt ${i + 1}: Payment/Subscription not found for ID ${entityId}. Retrying in 2s...`);
+        await new Promise(r => setTimeout(r, 2000));
+      }
+
+      if (!payment) {
+        console.log("Payment/Subscription not found after retries:", entityId);
         return new Response("OK", { status: 200, headers: corsHeaders });
       }
 
