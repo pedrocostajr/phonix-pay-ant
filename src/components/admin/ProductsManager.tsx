@@ -235,13 +235,20 @@ export function ProductsManager() {
   const handleDuplicateProduct = async (product: Product) => {
     try {
       setLoading(true);
-      const { id, created_at, ...productData } = product;
+
+      // Destructure to remove ID, created_at and related objects that are not columns
+      const {
+        id,
+        created_at,
+        mercado_pago_account, // Joined object
+        ...productData
+      } = product as any;
 
       const newProduct = {
         ...productData,
         name: `${productData.name} (Cópia)`,
-        mercado_pago_account_id: productData.mercado_pago_account_id || null, // Ensure explicit null
-        asaas_account_id: (productData as any).asaas_account_id || null, // Ensure explicit null
+        mercado_pago_account_id: productData.mercado_pago_account_id || null,
+        asaas_account_id: productData.asaas_account_id || null,
       };
 
       const { error } = await supabase
