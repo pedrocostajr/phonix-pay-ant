@@ -4,16 +4,18 @@ interface ThumbnailRendererProps {
     content: string | null | undefined;
     alt?: string;
     className?: string;
-    isCover?: boolean; // If true, applies specific styles for module/course covers
+    aspectRatio?: 'horizontal' | 'vertical' | 'banner' | 'none';
 }
 
 export const ThumbnailRenderer: React.FC<ThumbnailRendererProps> = ({
     content,
     alt = "Thumbnail",
     className = "",
-    isCover = false
+    aspectRatio = 'horizontal'
 }) => {
     if (!content) return null;
+
+    const aspectClass = aspectRatio === 'horizontal' ? 'aspect-video' : aspectRatio === 'vertical' ? 'aspect-[2/3]' : aspectRatio === 'banner' ? 'aspect-[4/1]' : '';
 
     // Basic check to see if content is HTML (like Canva embed)
     const isHtml = content.trim().startsWith("<") && content.includes(">") && (content.includes("iframe") || content.includes("div"));
@@ -21,7 +23,7 @@ export const ThumbnailRenderer: React.FC<ThumbnailRendererProps> = ({
     if (isHtml) {
         return (
             <div
-                className={`relative overflow-hidden ${className} ${isCover ? 'aspect-video' : ''}`}
+                className={`relative overflow-hidden w-full h-full ${aspectClass} ${className}`}
                 dangerouslySetInnerHTML={{ __html: content }}
             />
         );
@@ -32,7 +34,7 @@ export const ThumbnailRenderer: React.FC<ThumbnailRendererProps> = ({
         <img
             src={content}
             alt={alt}
-            className={`w-full h-full object-cover ${className}`}
+            className={`w-full h-full object-cover ${aspectClass} ${className}`}
             onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
             }}
