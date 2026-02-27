@@ -227,51 +227,78 @@ interface ModuleRowProps {
 }
 
 function ModuleRow({ module }: ModuleRowProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
     const [emblaRef, emblaApi] = useEmblaCarousel({
         align: 'start',
         containScroll: 'trimSnaps',
         dragFree: true
     });
 
-    const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
-    const scrollNext = () => emblaApi && emblaApi.scrollNext();
+    const scrollPrev = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        emblaApi && emblaApi.scrollPrev();
+    };
+
+    const scrollNext = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        emblaApi && emblaApi.scrollNext();
+    };
 
     return (
-        <div className="flex flex-col md:flex-row gap-6 items-start">
-            {module.thumbnail_url && (
-                <div className="w-[180px] shrink-0 rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
-                    <ThumbnailRenderer
-                        content={module.thumbnail_url}
-                        alt={module.name}
-                        className="opacity-80"
-                        aspectRatio="vertical"
-                    />
-                </div>
-            )}
-            <div className="flex-1 w-full space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-black text-white flex items-center gap-3">
-                        <div className="w-1.5 h-6 bg-primary rounded-full" />
-                        {module.name}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={scrollPrev}
-                            className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={scrollNext}
-                            className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
-                        >
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
+        <div className={`space-y-4 p-6 rounded-3xl transition-all duration-500 ${isExpanded ? 'bg-white/5 border border-white/10' : 'hover:bg-white/5 border border-transparent'}`}>
+            {/* Header / Clickable Toggle */}
+            <div
+                className="flex flex-col md:flex-row gap-6 items-center cursor-pointer group"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                {module.thumbnail_url && (
+                    <div className={`w-[140px] shrink-0 rounded-2xl overflow-hidden border border-white/5 shadow-2xl transition-all duration-500 ${isExpanded ? 'scale-105 border-primary/50' : 'group-hover:scale-105'}`}>
+                        <ThumbnailRenderer
+                            content={module.thumbnail_url}
+                            alt={module.name}
+                            className={isExpanded ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}
+                            aspectRatio="vertical"
+                        />
+                    </div>
+                )}
+                <div className="flex-1 w-full flex items-center justify-between">
+                    <div className="space-y-1 text-left">
+                        <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                            <div className={`w-1.5 h-6 rounded-full transition-colors duration-500 ${isExpanded ? 'bg-primary' : 'bg-neutral-700'}`} />
+                            {module.name}
+                        </h3>
+                        <p className="text-sm text-neutral-500 font-medium ml-4">
+                            {module.lessons.length} {module.lessons.length === 1 ? 'aula' : 'aulas'} • {isExpanded ? 'Clique para fechar' : 'Clique para ver as aulas'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        {isExpanded && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={scrollPrev}
+                                    className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={scrollNext}
+                                    className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                        <div className={`w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <ChevronRight className={`w-5 h-5 transition-colors ${isExpanded ? 'text-primary' : 'text-neutral-500'}`} />
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            {/* Expandable Lessons Section */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100 mt-6' : 'max-h-0 opacity-0'}`}>
                 <div className="overflow-hidden" ref={emblaRef}>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 pb-4">
                         {module.lessons.map((lesson) => (
                             <div
                                 key={lesson.id}
@@ -304,8 +331,8 @@ function ModuleRow({ module }: ModuleRowProps) {
 
                                     {/* Content Overlay */}
                                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/60 to-transparent">
-                                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1 block">Aula {lesson.order + 1}</span>
-                                        <h4 className="font-bold text-sm truncate">{lesson.name}</h4>
+                                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1 block text-left">Aula {lesson.order + 1}</span>
+                                        <h4 className="font-bold text-sm truncate text-left">{lesson.name}</h4>
                                     </div>
                                 </Link>
                             </div>
@@ -319,5 +346,7 @@ function ModuleRow({ module }: ModuleRowProps) {
                 </div>
             </div>
         </div>
+    );
+}
     );
 }
