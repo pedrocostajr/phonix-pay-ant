@@ -20,11 +20,13 @@ import { toast } from "@/hooks/use-toast";
 interface Product {
     id: string;
     name: string;
+    thumbnail_url?: string | null;
 }
 
 interface Module {
     id: string;
     name: string;
+    thumbnail_url?: string | null;
     order: number;
 }
 
@@ -53,6 +55,10 @@ export function MembersAreaManager() {
     const [loading, setLoading] = useState(true);
     const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
+    // Module Editor State
+    const [editingModule, setEditingModule] = useState<Module | null>(null);
+    const [isSavingModule, setIsSavingModule] = useState(false);
+
     // Lesson Editor State
     const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
     const [lessonMaterials, setLessonMaterials] = useState<Material[]>([]);
@@ -61,7 +67,7 @@ export function MembersAreaManager() {
     const fetchProducts = async () => {
         const { data, error } = await supabase
             .from("products")
-            .select("id, name")
+            .select("id, name, thumbnail_url")
             .order("name");
         if (error) {
             toast({ title: "Erro ao buscar produtos", description: error.message, variant: "destructive" });
@@ -146,6 +152,31 @@ export function MembersAreaManager() {
         } else {
             fetchModulesAndLessons(selectedProductId);
         }
+    };
+
+    const openModuleEditor = (module: Module) => {
+        setEditingModule(module);
+    };
+
+    const saveModule = async () => {
+        if (!editingModule || !selectedProductId) return;
+        setIsSavingModule(true);
+        const { error } = await supabase
+            .from("course_modules")
+            .update({
+                name: editingModule.name,
+                thumbnail_url: editingModule.thumbnail_url
+            })
+            .eq("id", editingModule.id);
+
+        if (error) {
+            toast({ title: "Erro ao salvar módulo", description: error.message, variant: "destructive" });
+        } else {
+            toast({ title: "Módulo salvo com sucesso" });
+            setEditingModule(null);
+            fetchModulesAndLessons(selectedProductId);
+        }
+        setIsSavingModule(false);
     };
 
     const addLesson = async (moduleId: string) => {
@@ -258,33 +289,69 @@ export function MembersAreaManager() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <select
-                        value={selectedProductId || ""}
-                        onChange={(e) => setSelectedProductId(e.target.value)}
-                        className="admin-input min-w-[200px] cursor-pointer"
-                    >
-                        {products.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                    </select>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Produto Selecionado</label>
+                        <select
+                            value={selectedProductId || ""}
+                            onChange={(e) => setSelectedProductId(e.target.value)}
+                            className="admin-input min-w-[200px] cursor-pointer"
+                        >
+                            {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
-                    <a
-                        href="/members"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                        Visualizar Área de Membros
-                    </a>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Capa do Curso (URL)</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={products.find(p => p.id === selectedProductId)?.thumbnail_url || ""}
+                                onChange={async (e) => {
+                                    const newUrl = e.target.value;
+                                    if (!selectedProductId) return;
 
-                    <button
-                        onClick={addModule}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo Módulo
-                    </button>
+                                    // Update local state immediately for better UX
+                                    setProducts(prev => prev.map(p => p.id === selectedProductId ? { ...p, thumbnail_url: newUrl } : p));
+
+                                    // Debounce or just save on blur would be better, but for now let's do a simple update
+                                    // Actually, let's just make it a text input and add a "Save" button or do it on blur
+                                }}
+                                onBlur={async (e) => {
+                                    if (!selectedProductId) return;
+                                    const { error } = await supabase
+                                        .from("products")
+                                        .update({ thumbnail_url: e.target.value })
+                                        .eq("id", selectedProductId);
+                                    if (error) toast({ title: "Erro ao salvar capa", variant: "destructive" });
+                                    else toast({ title: "Capa do curso atualizada" });
+                                }}
+                                className="admin-input min-w-[250px]"
+                                placeholder="https://... (URL da Imagem)"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2 h-full pb-0.5">
+                        <a
+                            href="/members"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-foreground font-medium text-sm hover:bg-secondary/80 transition-colors h-[42px]"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            Visualizar
+                        </a>
+
+                        <button
+                            onClick={addModule}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity h-[42px]"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Novo Módulo
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -302,13 +369,20 @@ export function MembersAreaManager() {
                             onClick={() => toggleModule(module.id)}
                         >
                             <div className="flex items-center gap-3">
-                                {expandedModules.has(module.id) ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                                <span className="font-semibold">{module.name}</span>
-                                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                                {expandedModules.has(module.id) ? <ChevronDown className="w-4 h-4 text-white" /> : <ChevronRight className="w-4 h-4 text-white" />}
+                                <span className="font-bold text-white">{module.name}</span>
+                                <span className="text-xs text-white/70 bg-white/10 px-2 py-0.5 rounded-full">
                                     {lessons[module.id]?.length || 0} aulas
                                 </span>
                             </div>
                             <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => openModuleEditor(module)}
+                                    className="p-2 hover:bg-white/10 rounded-lg text-white/70 transition-colors"
+                                    title="Editar Módulo"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                </button>
                                 <button
                                     onClick={() => addLesson(module.id)}
                                     className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
@@ -489,6 +563,73 @@ export function MembersAreaManager() {
                                 className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
                             >
                                 {isSavingLesson ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Module Editor Modal */}
+            {editingModule && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-card w-full max-w-lg rounded-3xl border border-border overflow-hidden shadow-2xl animate-scale-in">
+                        <div className="flex items-center justify-between p-6 border-b border-border bg-secondary/20">
+                            <h3 className="font-bold text-lg flex items-center gap-2">
+                                <Edit2 className="w-5 h-5 text-primary" />
+                                Editar Módulo
+                            </h3>
+                            <button
+                                onClick={() => setEditingModule(null)}
+                                className="p-2 hover:bg-secondary rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div>
+                                <label className="block text-sm font-bold mb-2">Nome do Módulo</label>
+                                <input
+                                    type="text"
+                                    value={editingModule.name}
+                                    onChange={e => setEditingModule({ ...editingModule, name: e.target.value })}
+                                    className="admin-input"
+                                    placeholder="Ex: Módulo 1 - Comece aqui"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold mb-2">Capa do Módulo (Thumbnail URL)</label>
+                                <div className="relative">
+                                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={editingModule.thumbnail_url || ""}
+                                        onChange={e => setEditingModule({ ...editingModule, thumbnail_url: e.target.value })}
+                                        className="admin-input pl-10"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    Link de uma imagem para o preview do módulo.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t border-border flex justify-end gap-3 bg-secondary/10">
+                            <button
+                                onClick={() => setEditingModule(null)}
+                                className="px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-secondary transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={saveModule}
+                                disabled={isSavingModule}
+                                className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+                            >
+                                {isSavingModule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Salvar Alterações
                             </button>
                         </div>

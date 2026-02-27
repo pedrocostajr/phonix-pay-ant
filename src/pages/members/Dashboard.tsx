@@ -24,6 +24,7 @@ interface Module {
     id: string;
     name: string;
     product_id: string;
+    thumbnail_url?: string | null;
     order: number;
     lessons: Lesson[];
 }
@@ -32,6 +33,7 @@ interface Product {
     id: string;
     name: string;
     accent_color: string;
+    thumbnail_url?: string | null;
     modules: Module[];
 }
 
@@ -56,7 +58,7 @@ export default function MembersDashboard() {
                 .from("course_modules")
                 .select(`
           *,
-          products (id, name, accent_color),
+          products (id, name, accent_color, thumbnail_url),
           course_lessons (id, name, description, video_url, thumbnail_url, "order")
         `)
                 .order("order");
@@ -77,6 +79,7 @@ export default function MembersDashboard() {
                         id: prod.id,
                         name: prod.name,
                         accent_color: prod.accent_color,
+                        thumbnail_url: prod.thumbnail_url,
                         modules: []
                     };
                 }
@@ -85,6 +88,7 @@ export default function MembersDashboard() {
                     id: m.id,
                     name: m.name,
                     product_id: m.product_id,
+                    thumbnail_url: m.thumbnail_url,
                     order: m.order,
                     lessons: (m.course_lessons || []).sort((a: any, b: any) => a.order - b.order)
                 });
@@ -176,27 +180,44 @@ export default function MembersDashboard() {
                 )}
 
                 {products.map((product) => (
-                    <div key={product.id} className="space-y-8">
+                    <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-black tracking-tight">{product.name}</h2>
-                            <div className="h-px flex-1 bg-white/5 mx-6 hidden md:block" />
+                            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                                <span className="w-2 h-8 bg-primary rounded-full" />
+                                {product.name}
+                            </h2>
                             <button className="text-sm font-bold text-neutral-400 hover:text-white flex items-center gap-1 transition-colors">
                                 Ver Tudo <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
 
-                        {product.modules.map((module) => (
-                            <ModuleRow key={module.id} module={module} />
-                        ))}
+                        {product.thumbnail_url && (
+                            <div className="w-full h-48 md:h-64 rounded-3xl overflow-hidden border border-white/5 relative group">
+                                <img
+                                    src={product.thumbnail_url}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                            </div>
+                        )}
                     </div>
-                ))}
-            </main>
 
-            <footer className="container mx-auto px-4 py-10 border-t border-white/5 flex justify-between items-center text-neutral-600 text-[10px] uppercase tracking-widest font-bold">
-                <span>&copy; 2026 PHOENIX MEMBERS</span>
-                <span>V2.0.1</span>
-            </footer>
-        </div>
+                        {
+                        product.modules.map((module) => (
+                            <ModuleRow key={module.id} module={module} />
+                        ))
+                    }
+                    </div>
+    ))
+}
+            </main >
+
+    <footer className="container mx-auto px-4 py-10 border-t border-white/5 flex justify-between items-center text-neutral-600 text-[10px] uppercase tracking-widest font-bold">
+        <span>&copy; 2026 PHOENIX MEMBERS</span>
+        <span>V2.0.1</span>
+    </footer>
+        </div >
     );
 }
 
@@ -218,10 +239,17 @@ function ModuleRow({ module }: ModuleRowProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-black text-white flex items-center gap-3">
-                    <div className="w-1.5 h-6 bg-primary rounded-full" />
-                    {module.name}
-                </h3>
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                        <div className="w-1.5 h-6 bg-primary rounded-full" />
+                        {module.name}
+                    </h3>
+                    {module.thumbnail_url && (
+                        <div className="w-full h-32 rounded-2xl overflow-hidden border border-white/5 mb-4">
+                            <img src={module.thumbnail_url} alt={module.name} className="w-full h-full object-cover opacity-50" />
+                        </div>
+                    )}
+                </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={scrollPrev}
