@@ -11,7 +11,8 @@ import {
     FileText,
     X,
     Save,
-    Download
+    Download,
+    ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -266,6 +267,17 @@ export function MembersAreaManager() {
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
+
+                    <a
+                        href="/members"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                        Visualizar Área de Membros
+                    </a>
+
                     <button
                         onClick={addModule}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
