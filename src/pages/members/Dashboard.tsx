@@ -16,6 +16,7 @@ interface Lesson {
     id: string;
     name: string;
     module_id: string;
+    thumbnail_url?: string | null;
     order: number;
 }
 
@@ -211,8 +212,8 @@ function ModuleRow({ module }: ModuleRowProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <div className="w-1 h-4 bg-primary rounded-full" />
+                <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-primary rounded-full" />
                     {module.name}
                 </h3>
                 <div className="flex items-center gap-2">
@@ -242,8 +243,21 @@ function ModuleRow({ module }: ModuleRowProps) {
                                 to={`/members/lesson/${lesson.id}`}
                                 className="group block relative aspect-video bg-neutral-900 rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all active:scale-95"
                             >
-                                {/* Thumbnail Simulation */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900" />
+                                {/* Thumbnail */}
+                                <div className="absolute inset-0 bg-neutral-800">
+                                    {lesson.thumbnail_url ? (
+                                        <img
+                                            src={lesson.thumbnail_url}
+                                            alt={lesson.name}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
+                                            <Play className="w-10 h-10 text-white/10" />
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
                                     <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center translate-y-2 group-hover:translate-y-0 transition-transform">
                                         <Play className="w-6 h-6 fill-current" />

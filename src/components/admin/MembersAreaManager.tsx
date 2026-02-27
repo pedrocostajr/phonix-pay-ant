@@ -33,6 +33,7 @@ interface Lesson {
     name: string;
     description: string | null;
     video_url: string | null;
+    thumbnail_url?: string | null;
     order: number;
 }
 
@@ -182,7 +183,8 @@ export function MembersAreaManager() {
             .update({
                 name: editingLesson.name,
                 description: editingLesson.description,
-                video_url: editingLesson.video_url
+                video_url: editingLesson.video_url,
+                thumbnail_url: editingLesson.thumbnail_url
             })
             .eq("id", editingLesson.id);
 
@@ -393,6 +395,23 @@ export function MembersAreaManager() {
                                         placeholder="https://www.youtube.com/watch?v=..."
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold mb-2">Capa da Aula (Thumbnail URL)</label>
+                                <div className="relative">
+                                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={editingLesson.thumbnail_url || ""}
+                                        onChange={e => setEditingLesson({ ...editingLesson, thumbnail_url: e.target.value })}
+                                        className="admin-input pl-10"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    Link de uma imagem (JPG/PNG) para o preview no dashboard.
+                                </p>
                             </div>
 
                             <div>
