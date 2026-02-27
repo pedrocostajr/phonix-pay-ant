@@ -318,5 +318,7 @@ function ModuleRow({ module }: ModuleRowProps) {
                 </div>
             </div>
         </div>
+            </div >
+        </div >
     );
 }
