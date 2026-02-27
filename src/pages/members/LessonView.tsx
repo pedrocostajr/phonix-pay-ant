@@ -199,7 +199,7 @@ export default function LessonView() {
                         <div className="bg-neutral-900 rounded-3xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5 bg-gradient-to-r from-neutral-900 to-neutral-800">
                                 <h3 className="font-black text-lg">Conteúdo</h3>
-                                <p className="text-xs text-white/50 mt-1 uppercase tracking-wider">{module?.name}</p>
+                                <p className="text-xs text-white font-bold mt-1 uppercase tracking-wider">{module?.name}</p>
                             </div>
                             <div className="p-2 space-y-1 bg-neutral-900/40">
                                 {module?.lessons.map((l, index) => {

@@ -57,7 +57,7 @@ export default function MembersDashboard() {
                 .select(`
           *,
           products (id, name, accent_color),
-          course_lessons (*)
+          course_lessons (id, name, description, video_url, thumbnail_url, "order")
         `)
                 .order("order");
 
@@ -191,12 +191,18 @@ export default function MembersDashboard() {
                     </div>
                 ))}
             </main>
+
+            <footer className="container mx-auto px-4 py-10 border-t border-white/5 flex justify-between items-center text-neutral-600 text-[10px] uppercase tracking-widest font-bold">
+                <span>&copy; 2026 PHOENIX MEMBERS</span>
+                <span>V2.0.1</span>
+            </footer>
         </div>
     );
 }
 
 interface ModuleRowProps {
     module: Module;
+    key?: string | number;
 }
 
 function ModuleRow({ module }: ModuleRowProps) {
