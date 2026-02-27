@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { ThumbnailRenderer } from "@/components/ThumbnailRenderer";
 
 interface Product {
     id: string;
@@ -303,7 +304,7 @@ export function MembersAreaManager() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Capa do Curso (URL)</label>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Capa do Treinamento (URL ou HTML Embed)</label>
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -328,7 +329,7 @@ export function MembersAreaManager() {
                                     else toast({ title: "Capa do curso atualizada" });
                                 }}
                                 className="admin-input min-w-[250px]"
-                                placeholder="https://... (URL da Imagem)"
+                                placeholder="https://... ou <iframe ...>"
                             />
                         </div>
                     </div>
@@ -484,7 +485,7 @@ export function MembersAreaManager() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-2">Capa da Aula (Thumbnail URL)</label>
+                                <label className="block text-sm font-bold mb-2">Capa da Aula (URL ou HTML Embed)</label>
                                 <div className="relative">
                                     <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                     <input
@@ -492,11 +493,11 @@ export function MembersAreaManager() {
                                         value={editingLesson.thumbnail_url || ""}
                                         onChange={e => setEditingLesson({ ...editingLesson, thumbnail_url: e.target.value })}
                                         className="admin-input pl-10"
-                                        placeholder="https://..."
+                                        placeholder="https://... ou <iframe ...>"
                                     />
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-1">
-                                    Link de uma imagem (JPG/PNG) para o preview no dashboard.
+                                    Aceita link de imagem ou código de incorporação do Canva.
                                 </p>
                             </div>
 
@@ -600,7 +601,7 @@ export function MembersAreaManager() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-2">Capa do Módulo (Thumbnail URL)</label>
+                                <label className="block text-sm font-bold mb-2">Capa do Módulo (URL ou HTML Embed)</label>
                                 <div className="relative">
                                     <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                     <input
@@ -608,11 +609,11 @@ export function MembersAreaManager() {
                                         value={editingModule.thumbnail_url || ""}
                                         onChange={e => setEditingModule({ ...editingModule, thumbnail_url: e.target.value })}
                                         className="admin-input pl-10"
-                                        placeholder="https://..."
+                                        placeholder="https://... ou <iframe ...>"
                                     />
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-1">
-                                    Link de uma imagem para o preview do módulo.
+                                    Aceita link de imagem ou código de incorporação do Canva.
                                 </p>
                             </div>
                         </div>

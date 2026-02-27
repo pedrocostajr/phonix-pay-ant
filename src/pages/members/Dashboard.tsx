@@ -11,6 +11,7 @@ import {
     ChevronLeft
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
+import { ThumbnailRenderer } from "@/components/ThumbnailRenderer";
 
 interface Lesson {
     id: string;
@@ -194,12 +195,12 @@ export default function MembersDashboard() {
 
                             {product.thumbnail_url && (
                                 <div className="w-full h-48 md:h-64 rounded-3xl overflow-hidden border border-white/5 relative group">
-                                    <img
-                                        src={product.thumbnail_url}
+                                    <ThumbnailRenderer
+                                        content={product.thumbnail_url}
                                         alt={product.name}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        className="transition-transform duration-700 group-hover:scale-105"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                 </div>
                             )}
                         </div>
@@ -243,8 +244,13 @@ function ModuleRow({ module }: ModuleRowProps) {
                         {module.name}
                     </h3>
                     {module.thumbnail_url && (
-                        <div className="w-full h-32 rounded-2xl overflow-hidden border border-white/5 mb-4">
-                            <img src={module.thumbnail_url} alt={module.name} className="w-full h-full object-cover opacity-50" />
+                        <div className="w-full rounded-2xl overflow-hidden border border-white/5 mb-4 max-h-[200px]">
+                            <ThumbnailRenderer
+                                content={module.thumbnail_url}
+                                alt={module.name}
+                                className="opacity-50"
+                                isCover
+                            />
                         </div>
                     )}
                 </div>
@@ -278,10 +284,10 @@ function ModuleRow({ module }: ModuleRowProps) {
                                 {/* Thumbnail */}
                                 <div className="absolute inset-0 bg-neutral-800">
                                     {lesson.thumbnail_url ? (
-                                        <img
-                                            src={lesson.thumbnail_url}
+                                        <ThumbnailRenderer
+                                            content={lesson.thumbnail_url}
                                             alt={lesson.name}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            className="transition-transform duration-500 group-hover:scale-110"
                                         />
                                     ) : (
                                         <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
