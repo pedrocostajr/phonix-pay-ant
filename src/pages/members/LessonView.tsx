@@ -138,8 +138,8 @@ export default function LessonView() {
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="font-medium">Painel</span>
                     </Link>
-                    <div className="text-sm font-medium truncate max-w-[200px] sm:max-w-none text-neutral-300">
-                        {module?.name} <span className="text-neutral-600 mx-2">/</span> <span className="text-white">{lesson.name}</span>
+                    <div className="text-sm font-medium truncate max-w-[200px] sm:max-w-none text-white">
+                        {module?.name} <span className="text-neutral-600 mx-2">/</span> <span className="text-white/70">{lesson.name}</span>
                     </div>
                     <a
                         href="https://wa.me/5554996895454"
@@ -199,7 +199,7 @@ export default function LessonView() {
                         <div className="bg-neutral-900 rounded-3xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5 bg-gradient-to-r from-neutral-900 to-neutral-800">
                                 <h3 className="font-black text-lg">Conteúdo</h3>
-                                <p className="text-xs text-neutral-500 mt-1 uppercase tracking-wider">{module?.name}</p>
+                                <p className="text-xs text-white/50 mt-1 uppercase tracking-wider">{module?.name}</p>
                             </div>
                             <div className="p-2 space-y-1 bg-neutral-900/40">
                                 {module?.lessons.map((l, index) => {
@@ -209,8 +209,8 @@ export default function LessonView() {
                                             key={l.id}
                                             to={`/members/lesson/${l.id}`}
                                             className={`flex items-center gap-4 p-4 rounded-2xl transition-all group ${isCurrent
-                                                    ? "bg-primary/10 border border-primary/20"
-                                                    : "hover:bg-white/5"
+                                                ? "bg-primary/10 border border-primary/20"
+                                                : "hover:bg-white/5"
                                                 }`}
                                         >
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${isCurrent ? "bg-primary text-white" : "bg-neutral-800 text-neutral-500"

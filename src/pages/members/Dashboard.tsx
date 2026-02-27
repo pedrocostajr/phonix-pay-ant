@@ -211,7 +211,7 @@ function ModuleRow({ module }: ModuleRowProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-neutral-300 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-primary rounded-full" />
                     {module.name}
                 </h3>
