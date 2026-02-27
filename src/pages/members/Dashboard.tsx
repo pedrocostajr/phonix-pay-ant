@@ -348,5 +348,3 @@ function ModuleRow({ module }: ModuleRowProps) {
         </div>
     );
 }
-    );
-}
