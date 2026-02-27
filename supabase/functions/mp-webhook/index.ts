@@ -19,13 +19,11 @@ serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
-    // Mercado Pago sends different notification types
-    // Handle both 'payment' and 'subscription_preapproval'
     const isPayment = body.type === "payment" || body.action === "payment.updated";
     const isSubscription = body.type === "subscription_preapproval" || body.topic === "preapproval";
 
     if (isPayment || isSubscription) {
-      const entityId = body.data?.id || body.id; // Payments use data.id, Preapprovals use id sometimes
+      const entityId = body.data?.id || body.id;
 
       if (!entityId) {
         console.log("No ID in webhook");
@@ -34,14 +32,11 @@ serve(async (req) => {
 
       console.log(`Processing webhook for ${isSubscription ? "Subscription" : "Payment"} ID: ${entityId}`);
 
-      console.log(`Processing webhook for ${isSubscription ? "Subscription" : "Payment"} ID: ${entityId}`);
-
-      // Retry loop to handle race conditions (webhook arriving before DB insert)
       let payment = null;
       for (let i = 0; i < 3; i++) {
         const { data, error } = await supabase
           .from("payments")
-          .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body)")
+          .select("*, mercado_pago_accounts(access_token), products(name, success_message, success_url, success_button_text, whatsapp_number, resend_api_key, sender_email, email_subject, email_body, webhook_url)")
           .eq("external_id", String(entityId))
           .maybeSingle();
 
@@ -63,11 +58,8 @@ serve(async (req) => {
       let approved = false;
 
       if (isSubscription) {
-        // Fetch Preapproval Status
         const subResponse = await fetch(`https://api.mercadopago.com/preapproval/${entityId}`, {
-          headers: {
-            "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}`,
-          },
+          headers: { "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}` },
         });
 
         if (!subResponse.ok) {
@@ -76,18 +68,11 @@ serve(async (req) => {
         }
 
         const subData = await subResponse.json();
-        console.log("MP Subscription status:", subData.status);
-
-        // Map 'authorized' to 'approved' for our logic
         status = subData.status === "authorized" ? "approved" : subData.status;
         approved = status === "approved";
-
       } else {
-        // Fetch Payment Status
         const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${entityId}`, {
-          headers: {
-            "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}`,
-          },
+          headers: { "Authorization": `Bearer ${payment.mercado_pago_accounts.access_token}` },
         });
 
         if (!mpResponse.ok) {
@@ -96,35 +81,24 @@ serve(async (req) => {
         }
 
         const mpPayment = await mpResponse.json();
-        console.log("MP Payment status:", mpPayment.status);
-
         status = mpPayment.status;
         approved = status === "approved";
       }
 
-      // Update payment status in database
-      const updateData: Record<string, unknown> = {
-        status: status,
-      };
+      const updateData: Record<string, any> = { status: status };
 
       if (approved) {
         updateData.paid_at = new Date().toISOString();
 
-        // Send Email if configured AND not already sent
+        // 1. Send Email if configured AND not already sent
         if (!payment.email_sent) {
           try {
-            // Fetch product email config
             const product = payment.products;
-
             if (product && product.resend_api_key && product.sender_email) {
-              console.log("Sending email for product:", product.name);
-
               const resendUrl = "https://api.resend.com/emails";
-
               let emailBody;
 
               if (product.email_body && product.email_body.trim() !== "") {
-                // Use Custom Body with Validations
                 emailBody = product.email_body
                   .replace(/{{nome}}/g, payment.payer_name || "Cliente")
                   .replace(/{{email}}/g, payment.payer_email)
@@ -132,45 +106,41 @@ serve(async (req) => {
                   .replace(/{{valor}}/g, new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100))
                   .replace(/{{link_acesso}}/g, product.success_url || "#");
               } else {
-                // Default Template
                 emailBody = `
-                    <h1>Obrigado pela sua compra!</h1>
-                    <p>Olá,</p>
-                    <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
-                    <p><strong>Produto:</strong> ${product.name}</p>
-                    <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
-                  `;
+                                    <h1>Obrigado pela sua compra!</h1>
+                                    <p>Olá,</p>
+                                    <p>O pagamento do pedido <strong>#${payment.id.slice(0, 8)}</strong> foi confirmado.</p>
+                                    <p><strong>Produto:</strong> ${product.name}</p>
+                                    <p><strong>Valor:</strong> ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount / 100)}</p>
+                                `;
 
                 if (product.success_message) {
                   emailBody += `
-                      <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-                        <h3>Instruções:</h3>
-                        <p>${product.success_message.replace(/\n/g, "<br>")}</p>
-                      </div>
-                    `;
+                                        <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
+                                            <h3>Instruções:</h3>
+                                            <p>${product.success_message.replace(/\n/g, "<br>")}</p>
+                                        </div>
+                                    `;
                 }
 
                 if (product.success_url) {
                   const btnText = product.success_button_text || "Acessar Agora";
                   emailBody += `
-                      <div style="margin: 30px 0; text-align: center;">
-                        <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                          ${btnText}
-                        </a>
-                      </div>
-                    `;
+                                        <div style="margin: 30px 0; text-align: center;">
+                                            <a href="${product.success_url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                                ${btnText}
+                                            </a>
+                                        </div>
+                                    `;
                 }
 
                 if (product.whatsapp_number) {
-                  emailBody += `
-                      <p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>
-                    `;
+                  emailBody += `<p>Precisa de ajuda? <a href="https://wa.me/${product.whatsapp_number.replace(/\D/g, "")}">Fale conosco no WhatsApp</a></p>`;
                 }
               }
 
               const subject = product.email_subject || `Compra Aprovada: ${product.name}`;
-
-              const emailResponse = await fetch(resendUrl, {
+              await fetch(resendUrl, {
                 method: "POST",
                 headers: {
                   "Authorization": `Bearer ${product.resend_api_key}`,
@@ -183,21 +153,35 @@ serve(async (req) => {
                   html: emailBody,
                 }),
               });
-
-              const emailResult = await emailResponse.json();
-              console.log("Email sent result:", emailResult);
-
-              // Mark as sent to prevent duplicates
               updateData.email_sent = true;
-
-            } else {
-              console.log("Email not configured for this product");
             }
           } catch (emailError) {
             console.error("Failed to send email:", emailError);
           }
-        } else {
-          console.log("Email already sent for this payment.");
+        }
+
+        // 2. Trigger External Webhook if configured
+        if (payment.products?.webhook_url) {
+          try {
+            console.log("Triggering external webhook:", payment.products.webhook_url);
+            await fetch(payment.products.webhook_url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                event: "payment.approved",
+                payment_id: payment.id,
+                amount: payment.amount,
+                payer_name: payment.payer_name,
+                payer_email: payment.payer_email,
+                product_name: payment.products.name,
+                external_id: entityId,
+                status: "approved",
+                paid_at: updateData.paid_at,
+              }),
+            });
+          } catch (webhookError) {
+            console.error("Failed to trigger external webhook:", webhookError);
+          }
         }
       }
 

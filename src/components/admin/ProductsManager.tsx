@@ -37,6 +37,7 @@ interface Product {
   asaas_account_id: string | null;
   payment_provider: 'mercadopago' | 'asaas';
   subscription_cycle: string | null;
+  webhook_url: string | null;
 }
 
 interface AsaasAccount {
@@ -90,6 +91,7 @@ export function ProductsManager() {
     payment_provider: "mercadopago",
     asaas_account_id: "",
     subscription_cycle: "",
+    webhook_url: "",
   });
 
   const fetchData = async () => {
@@ -186,6 +188,7 @@ export function ProductsManager() {
       payment_provider: "mercadopago",
       asaas_account_id: "",
       subscription_cycle: "",
+      webhook_url: "",
     });
     setEditingProduct(null);
     setSaveError(null);
@@ -218,6 +221,7 @@ export function ProductsManager() {
       payment_provider: (product as any).payment_provider || "mercadopago",
       asaas_account_id: (product as any).asaas_account_id || "",
       subscription_cycle: (product as any).subscription_cycle || "",
+      webhook_url: product.webhook_url || "",
     });
     setEditingProduct(product);
     setShowForm(true);
@@ -338,6 +342,7 @@ export function ProductsManager() {
         payment_provider: formData.payment_provider,
         asaas_account_id: formData.asaas_account_id || null,
         subscription_cycle: formData.subscription_cycle || null,
+        webhook_url: formData.webhook_url?.trim() || null,
       };
 
       console.log("Reduced data payload:", productData);
@@ -643,6 +648,29 @@ export function ProductsManager() {
             <div className="col-span-2">
               <p className="text-xs text-muted-foreground">
                 Se preenchidos, um botão aparecerá na página de sucesso. Ideal para entregar infoprodutos ou redirecionar.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-primary" />
+              Integração via Webhook
+            </h3>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                URL do Webhook (Opcional)
+              </label>
+              <input
+                type="url"
+                value={formData.webhook_url}
+                onChange={(e) => setFormData({ ...formData, webhook_url: e.target.value })}
+                placeholder="https://sua-url-de-automacao.com/webhook"
+                className="admin-input"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Uma requisição POST será enviada para esta URL com os dados do cliente e da venda assim que o pagamento for aprovado.
               </p>
             </div>
           </div>
