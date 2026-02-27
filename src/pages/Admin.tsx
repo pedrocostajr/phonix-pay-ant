@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Users, CreditCard, Package, Loader2, Building2, Calendar } from "lucide-react";
+import { LogOut, Users, CreditCard, Package, Loader2, Building2, Calendar, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { MercadoPagoAccounts } from "@/components/admin/MercadoPagoAccounts";
 import { AsaasManager } from "@/components/admin/AsaasManager";
 import { SubscriptionsManager } from "@/components/admin/SubscriptionsManager";
+import { MembersAreaManager } from "@/components/admin/MembersAreaManager";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
-type Tab = "products" | "mercadopago" | "asaas" | "team" | "subscriptions";
+type Tab = "products" | "members_area" | "subscriptions" | "mercadopago" | "asaas" | "team";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function Admin() {
 
   const tabs = [
     { id: "products" as Tab, label: "Produtos", icon: Package },
+    { id: "members_area" as Tab, label: "Área de Membros", icon: BookOpen },
     { id: "subscriptions" as Tab, label: "Assinaturas", icon: Calendar },
     { id: "mercadopago" as Tab, label: "Mercado Pago", icon: CreditCard },
     { id: "asaas" as Tab, label: "Asaas", icon: Building2 },
@@ -107,6 +109,11 @@ export default function Admin() {
           {activeTab === "products" && (
             <ErrorBoundary name="Produtos">
               <ProductsManager />
+            </ErrorBoundary>
+          )}
+          {activeTab === "members_area" && (
+            <ErrorBoundary name="Área de Membros">
+              <MembersAreaManager />
             </ErrorBoundary>
           )}
           {activeTab === "subscriptions" && (

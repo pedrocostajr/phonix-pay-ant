@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle2, Package, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { CheckCircle2, Package, Mail, ArrowRight, Loader2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/constants";
 
@@ -29,6 +29,7 @@ export default function Success() {
   const paymentId = searchParams.get("payment");
   const [loading, setLoading] = useState(true);
   const [payment, setPayment] = useState<PaymentDetails | null>(null);
+  const [hasModules, setHasModules] = useState(false);
 
   useEffect(() => {
     if (!paymentId) {
@@ -66,6 +67,15 @@ export default function Success() {
           ...data,
           product: data.products as PaymentDetails["product"],
         });
+
+        // Check if product has modules for members area
+        if (data.product_id) {
+          const { count } = await supabase
+            .from("course_modules")
+            .select("*", { count: 'exact', head: true })
+            .eq("product_id", data.product_id);
+          setHasModules((count || 0) > 0);
+        }
       }
       setLoading(false);
     };
@@ -277,6 +287,20 @@ export default function Success() {
                 </svg>
                 <span>Falar no WhatsApp</span>
               </a>
+            )}
+
+            {hasModules && (
+              <Link
+                to={`/members/claim?email=${payment?.payer_email}`}
+                className="phoenix-btn phoenix-btn-primary w-full flex items-center justify-center gap-2 mb-2"
+                style={{
+                  background: `linear-gradient(135deg, hsl(${gradientStart}) 0%, hsl(${gradientEnd}) 100%)`,
+                }}
+              >
+                <BookOpen className="w-5 h-5" />
+                Acessar Área de Membros
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             )}
 
             {payment?.product?.success_url && payment?.product?.success_button_text && (
