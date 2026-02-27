@@ -236,89 +236,87 @@ function ModuleRow({ module }: ModuleRowProps) {
     const scrollNext = () => emblaApi && emblaApi.scrollNext();
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+            {module.thumbnail_url && (
+                <div className="w-[180px] shrink-0 rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
+                    <ThumbnailRenderer
+                        content={module.thumbnail_url}
+                        alt={module.name}
+                        className="opacity-80"
+                        aspectRatio="vertical"
+                    />
+                </div>
+            )}
+            <div className="flex-1 w-full space-y-4">
+                <div className="flex items-center justify-between">
                     <h3 className="text-2xl font-black text-white flex items-center gap-3">
                         <div className="w-1.5 h-6 bg-primary rounded-full" />
                         {module.name}
                     </h3>
-                    {module.thumbnail_url && (
-                        <div className="w-full rounded-2xl overflow-hidden border border-white/5 mb-4 max-h-[200px]">
-                            <ThumbnailRenderer
-                                content={module.thumbnail_url}
-                                alt={module.name}
-                                className="opacity-50"
-                                isCover
-                            />
-                        </div>
-                    )}
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={scrollPrev}
-                        className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={scrollNext}
-                        className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex gap-4">
-                    {module.lessons.map((lesson) => (
-                        <div
-                            key={lesson.id}
-                            className="flex-[0_0_280px] sm:flex-[0_0_320px] min-w-0"
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={scrollPrev}
+                            className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
                         >
-                            <Link
-                                to={`/members/lesson/${lesson.id}`}
-                                className="group block relative aspect-video bg-neutral-900 rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all active:scale-95"
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={scrollNext}
+                            className="w-8 h-8 rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center hover:bg-neutral-800 transition-colors disabled:opacity-30"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="overflow-hidden" ref={emblaRef}>
+                    <div className="flex gap-4">
+                        {module.lessons.map((lesson) => (
+                            <div
+                                key={lesson.id}
+                                className="flex-[0_0_280px] sm:flex-[0_0_320px] min-w-0"
                             >
-                                {/* Thumbnail */}
-                                <div className="absolute inset-0 bg-neutral-800">
-                                    {lesson.thumbnail_url ? (
-                                        <ThumbnailRenderer
-                                            content={lesson.thumbnail_url}
-                                            alt={lesson.name}
-                                            className="transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
-                                            <Play className="w-10 h-10 text-white/10" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
-                                    <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center translate-y-2 group-hover:translate-y-0 transition-transform">
-                                        <Play className="w-6 h-6 fill-current" />
+                                <Link
+                                    to={`/members/lesson/${lesson.id}`}
+                                    className="group block relative aspect-video bg-neutral-900 rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all active:scale-95"
+                                >
+                                    {/* Thumbnail */}
+                                    <div className="absolute inset-0 bg-neutral-800">
+                                        {lesson.thumbnail_url ? (
+                                            <ThumbnailRenderer
+                                                content={lesson.thumbnail_url}
+                                                alt={lesson.name}
+                                                className="transition-transform duration-500 group-hover:scale-110"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
+                                                <Play className="w-10 h-10 text-white/10" />
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
 
-                                {/* Content Overlay */}
-                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/60 to-transparent">
-                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1 block">Aula {lesson.order + 1}</span>
-                                    <h4 className="font-bold text-sm truncate">{lesson.name}</h4>
-                                </div>
-                            </Link>
-                        </div>
-                    ))}
-                    {module.lessons.length === 0 && (
-                        <div className="w-full text-center py-10 text-neutral-500 text-sm italic">
-                            Nenhuma aula disponível neste módulo.
-                        </div>
-                    )}
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
+                                        <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center translate-y-2 group-hover:translate-y-0 transition-transform">
+                                            <Play className="w-6 h-6 fill-current" />
+                                        </div>
+                                    </div>
+
+                                    {/* Content Overlay */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/60 to-transparent">
+                                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1 block">Aula {lesson.order + 1}</span>
+                                        <h4 className="font-bold text-sm truncate">{lesson.name}</h4>
+                                    </div>
+                                </Link>
+                            </div>
+                        ))}
+                        {module.lessons.length === 0 && (
+                            <div className="w-full text-center py-10 text-neutral-500 text-sm italic">
+                                Nenhuma aula disponível neste módulo.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
-            </div >
-        </div >
     );
 }
