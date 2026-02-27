@@ -194,11 +194,12 @@ export default function MembersDashboard() {
                             </div>
 
                             {product.thumbnail_url && (
-                                <div className="w-full h-48 md:h-64 rounded-3xl overflow-hidden border border-white/5 relative group">
+                                <div className="w-full rounded-3xl overflow-hidden border border-white/5 relative group shadow-2xl">
                                     <ThumbnailRenderer
                                         content={product.thumbnail_url}
                                         alt={product.name}
                                         className="transition-transform duration-700 group-hover:scale-105"
+                                        aspectRatio="banner"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                 </div>
